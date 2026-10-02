@@ -1,0 +1,58 @@
+# Dependencies
+node_modules/
+/.pnp
+.pnp.js
+
+# Next.js Build Output & Cache
+.next/
+out/
+build/
+dist/
+.cache/
+.vite/
+vite.config.*.timestamp-*
+*.tsbuildinfo
+.tmp-*
+.claude-replay.*
+
+# Vercel
+.vercel/
+
+# Environment Variables (keep .env.example tracked)
+.env*.local
+.env
+!.env.example
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# OS & Editor Files
+.DS_Store
+Thumbs.db
+*.sublime-project
+*.sublime-workspace
+.idea/
+.vscode/
+
+# Documents, PDFs & Internal Specifications
+*.pdf
+AGENTS.md
+CLAUDE.md
+docs/
+plans/
+
+# Figma Metadata, Design Imports & Heavy Artwork
+.figma/
+src/imports/
+pulse logo final 3.svg
+
+# Legacy Vite & Platform Scaffolds
+vite.config.ts
+index.html
+.mise.toml
+/.plugins/
+/.opencode-skills/
