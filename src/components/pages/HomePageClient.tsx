@@ -19,6 +19,8 @@ import { PaddleStackingSection } from '@/components/home/PaddleStackingSection'
 import Timeline from '@/components/ui/timeline'
 import { FeatureBento } from '@/components/ui/feature-bento'
 import { TiltCard } from '@/components/ui/tilt-card'
+import { InfiniteSlider } from '@/components/ui/infinite-slider'
+import { VideoShowcaseSection } from '@/components/home/VideoShowcaseSection'
 
 const heroSlides = [
   { src: 'https://images.unsplash.com/photo-1551434678-e076c223a692?w=900&q=85', alt: 'Technology team collaborating', label: 'COLLABORATION' },
@@ -46,6 +48,15 @@ const marqueeItems = [
   'DIGITAL MARKETING & GROWTH',
   'MANAGED IT & OUTSOURCING',
   'CONSULTING & ASSURANCE',
+]
+
+const clientLogos = [
+  { name: 'Nintendo', src: '/logos/nintendo_logo.svg' },
+  { name: 'jQuery', src: '/logos/jquery_logo.svg' },
+  { name: 'Prada', src: '/logos/prada_logo.svg' },
+  { name: 'Apple Music', src: '/logos/apple_music_logo.svg' },
+  { name: 'Chrome', src: '/logos/chrome_logo.svg' },
+  { name: 'Strava', src: '/logos/strava_logo.svg' },
 ]
 
 import type { Industry } from '@/content/industries'
@@ -206,16 +217,27 @@ export function HomePageClient({
         <style>{`.p41-hero-grid{display:grid;grid-template-columns:1fr 1fr;gap:72px;} @media(max-width:900px){.p41-hero-grid{grid-template-columns:1fr!important;gap:48px!important;}}`}</style>
       </section>
 
-      {/* ── CAPABILITY MARQUEE ──────────────────────────────────────────── */}
-      <div style={{ background: C.navy, padding: '14px 0', overflow: 'hidden', borderTop: `3px solid ${C.blue}` }}>
-        <div className="marquee-track">
-          {marqueeItems.map((c, i) => (
-            <span key={i} style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.16em', color: C.lightBlue, padding: '0 32px', textTransform: 'uppercase', flexShrink: 0 }}>
-              {c} <span style={{ color: C.blue, margin: '0 4px' }}>◆</span>
-            </span>
-          ))}
+      {/* ── CLIENT INFINITE SLIDER (HARMONIZED #F8FAFC BACKGROUND) ────── */}
+      <section className="relative overflow-hidden bg-[#F8FAFC] py-8 sm:py-10 border-t border-b border-slate-200/60">
+        <div className="relative w-full overflow-hidden">
+          {/* Edge gradient masks for seamless off-white transition */}
+          <div className="absolute left-0 top-0 bottom-0 w-24 sm:w-36 bg-gradient-to-r from-[#F8FAFC] to-transparent z-10 pointer-events-none" />
+          <div className="absolute right-0 top-0 bottom-0 w-24 sm:w-36 bg-gradient-to-l from-[#F8FAFC] to-transparent z-10 pointer-events-none" />
+
+          <InfiniteSlider gap={56} duration={35} durationOnHover={70} className="w-full items-center">
+            {[...clientLogos, ...clientLogos, ...clientLogos].map((logo, idx) => (
+              <div key={idx} className="flex items-center justify-center px-4">
+                <img
+                  src={logo.src}
+                  alt={`${logo.name} logo`}
+                  className="h-[52px] sm:h-[65px] w-auto object-contain transition-transform duration-300 hover:scale-105"
+                  loading="eager"
+                />
+              </div>
+            ))}
+          </InfiniteSlider>
         </div>
-      </div>
+      </section>
 
       {/* ── STATISTICS ─────────────────────────────────────────────────── */}
       <section style={{ background: C.offWhite, borderBottom: `1px solid ${C.gray}` }}>
@@ -239,6 +261,9 @@ export function HomePageClient({
 
       {/* ── PADDLE-STYLE 5-SLIDE STACKING ADVANTAGE SECTION ────────────── */}
       <PaddleStackingSection />
+
+      {/* ── PULSE41 INTRO VIDEO SHOWCASE ─────────────────────────────── */}
+      <VideoShowcaseSection />
 
       {/* ── OUR PROCESS (21ST.DEV PINNED HORIZONTAL TIMELINE) ────────── */}
       <Timeline />

@@ -49,6 +49,7 @@ plans/
 .figma/
 src/imports/
 pulse logo final 3.svg
+public/pulse-41-intro.mp4
 
 # Legacy Vite & Platform Scaffolds
 vite.config.ts

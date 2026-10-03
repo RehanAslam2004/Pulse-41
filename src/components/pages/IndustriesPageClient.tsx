@@ -316,9 +316,8 @@ export function IndustriesPageClient({ industriesData }: { industriesData?: Indu
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-14 items-center">
             {/* Left Headline Column */}
             <div className="lg:col-span-7">
-              <div className="hero-animate hero-d1 inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#3B82F6]/15 border border-[#3B82F6]/30 text-[#93C5FD] text-xs font-mono font-semibold tracking-wider uppercase mb-6">
-                <span className="w-2 h-0.5 bg-[#3B82F6] rounded-full" />
-                <span>INDUSTRY EXPERTISE</span>
+              <div className="hero-animate hero-d1 text-xs font-semibold tracking-[0.16em] uppercase text-blue-400 mb-4">
+                Industry Sectors & Expertise
               </div>
 
               <h1 className="hero-animate hero-d2 text-[clamp(2.75rem,5vw,4.5rem)] font-extrabold leading-[1.04] text-white tracking-[-0.035em] mb-6">

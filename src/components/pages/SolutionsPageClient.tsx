@@ -146,11 +146,9 @@ export function SolutionsPageClient({ solutionsData }: { solutionsData?: Solutio
 
         <div className="max-w-7xl mx-auto relative z-10">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-14 items-center">
-            {/* Left Headline Column */}
             <div className="lg:col-span-6 xl:col-span-7">
-              <div className="hero-animate hero-d1 inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#3B82F6]/15 border border-[#3B82F6]/30 text-[#93C5FD] text-xs font-mono font-semibold tracking-wider uppercase mb-6">
-                <span className="w-2 h-0.5 bg-[#3B82F6] rounded-full" />
-                <span>SOLUTION PLATFORMS</span>
+              <div className="hero-animate hero-d1 text-xs font-semibold tracking-[0.16em] uppercase text-blue-400 mb-4">
+                Enterprise Product Suites
               </div>
 
               <h1 className="hero-animate hero-d2 text-[clamp(2.75rem,5vw,4.5rem)] font-extrabold leading-[1.04] text-white tracking-[-0.035em] mb-6">
@@ -425,9 +423,8 @@ export function SolutionsPageClient({ solutionsData }: { solutionsData?: Solutio
 
         <div className="max-w-7xl mx-auto">
           {/* Eyebrow */}
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#3B82F6]/15 border border-[#3B82F6]/30 text-[#93C5FD] text-xs font-mono font-semibold tracking-wider uppercase mb-12">
-            <span className="w-1.5 h-1.5 rounded-full bg-[#3B82F6] animate-pulse" />
-            <span>FEATURED PLATFORM</span>
+          <div className="text-xs font-semibold tracking-[0.16em] uppercase text-blue-400 mb-8">
+            Featured Platform Architecture
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-14 items-center">

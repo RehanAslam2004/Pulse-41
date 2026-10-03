@@ -107,14 +107,10 @@ export function SolutionDetailPageClient({
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-center">
             {/* Left Column: Headline & Intro */}
             <div className="lg:col-span-6 xl:col-span-6">
-              <div className="flex flex-wrap items-center gap-3 mb-6">
-                <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#3B82F6]/10 border border-[#3B82F6]/20 text-[#93C5FD] text-xs font-mono font-semibold tracking-wider uppercase">
-                  <span className="w-2 h-2 rounded-full bg-[#3B82F6] animate-pulse" />
-                  <span>PLATFORM {solution.num}</span>
-                </span>
-                <span className="px-3 py-1 rounded-full text-xs font-mono font-semibold tracking-wider uppercase bg-white/5 border border-white/10 text-white">
-                  {solution.productName}
-                </span>
+              <div className="flex items-center gap-3 text-xs font-semibold tracking-[0.16em] uppercase text-blue-400 mb-4">
+                <span>Platform {solution.num}</span>
+                <span className="text-slate-500">•</span>
+                <span className="text-slate-300">{solution.productName}</span>
               </div>
 
               <h1 className="text-[clamp(2.5rem,4.8vw,4.5rem)] font-extrabold leading-[1.04] text-white tracking-[-0.035em] mb-6">
