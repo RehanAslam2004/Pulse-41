@@ -3,60 +3,14 @@
 import {
   type CSSProperties,
   useEffect,
-  useLayoutEffect,
   useRef,
   useSyncExternalStore,
 } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { SplitText } from "gsap/SplitText";
 
 if (typeof window !== "undefined") {
-  try {
-    gsap.registerPlugin(ScrollTrigger, SplitText);
-  } catch {
-    gsap.registerPlugin(ScrollTrigger);
-  }
-}
-
-const useIsomorphicLayoutEffect =
-  typeof window !== "undefined" ? useLayoutEffect : useEffect;
-
-/* Inline stand-in for @gsap/react's useGSAP */
-function useGSAP(
-  callback: () => void | (() => void),
-  options?: {
-    dependencies?: unknown[];
-    scope?: { current: Element | null } | Element | null;
-  }
-) {
-  const deps = options?.dependencies ?? [];
-  const scope = options?.scope;
-  const ctxRef = useRef<gsap.Context | null>(null);
-  const cleanupRef = useRef<(() => void) | undefined>(undefined);
-
-  useIsomorphicLayoutEffect(() => {
-    const el =
-      scope && typeof scope === "object" && "current" in scope
-        ? scope.current
-        : (scope as Element | null);
-    ctxRef.current = gsap.context(() => {}, el ?? undefined);
-    return () => {
-      cleanupRef.current?.();
-      cleanupRef.current = undefined;
-      ctxRef.current?.revert();
-      ctxRef.current = null;
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  useIsomorphicLayoutEffect(() => {
-    if (!ctxRef.current) return;
-    cleanupRef.current?.();
-    const ret = ctxRef.current.add(callback);
-    cleanupRef.current = typeof ret === "function" ? ret : undefined;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, deps);
+  gsap.registerPlugin(ScrollTrigger);
 }
 
 export type JourneyItem = {
@@ -70,8 +24,6 @@ export type JourneyItem = {
   focus?: string;
 };
 
-type SplitTextInstance = InstanceType<typeof SplitText>;
-
 export type TimelineProps = {
   title?: string;
   subtitle?: string;
@@ -82,9 +34,7 @@ export type TimelineProps = {
   backgroundColor?: string;
   imageUrl?: string;
   imageAlt?: string;
-  /** Reveal animation duration, in seconds. */
   duration?: number;
-  /** Fallback reveal duration when `duration` is omitted, in seconds. */
   scrollDuration?: number;
   topData?: JourneyItem[];
   bottomData?: JourneyItem[];
@@ -94,16 +44,13 @@ const REDUCED_MOTION_QUERY = "(prefers-reduced-motion: reduce)";
 
 function subscribeToReducedMotion(callback: () => void) {
   if (typeof window === "undefined") return () => {};
-
   const mediaQueryList = window.matchMedia(REDUCED_MOTION_QUERY);
   mediaQueryList.addEventListener("change", callback);
-
   return () => mediaQueryList.removeEventListener("change", callback);
 }
 
 function getReducedMotionSnapshot() {
   if (typeof window === "undefined") return false;
-
   return window.matchMedia?.(REDUCED_MOTION_QUERY)?.matches ?? false;
 }
 
@@ -115,7 +62,7 @@ function usePrefersReducedMotion() {
   return useSyncExternalStore(
     subscribeToReducedMotion,
     getReducedMotionSnapshot,
-    getServerReducedMotionSnapshot,
+    getServerReducedMotionSnapshot
   );
 }
 
@@ -208,16 +155,12 @@ export default function Timeline({
   backgroundColor = "#0A0F1D",
   imageUrl = "/images/process/isometric-cubes.jpg",
   imageAlt = "Pulse41 Disciplined Engineering Architecture",
-  duration,
-  scrollDuration = 1.2,
   topData = defaultTopJourneyData,
   bottomData = defaultBottomJourneyData,
 }: TimelineProps) {
   const sectionRef = useRef<HTMLElement>(null);
   const wholeSliderRef = useRef<HTMLDivElement>(null);
   const reducedMotion = usePrefersReducedMotion();
-  const animationDuration = duration ?? scrollDuration;
-  const normalizedDuration = Math.max(0.2, animationDuration);
 
   const sectionStyle: CSSProperties = {
     color: textColor,
@@ -226,251 +169,174 @@ export default function Timeline({
   const activeStyle: CSSProperties = {
     backgroundColor: activeColor,
   };
-  const mutedTextStyle: CSSProperties = {
-    color: mutedTextColor,
-  };
 
   const allJourneyItems: JourneyItem[] = [...topData, ...bottomData].sort((a, b) =>
     a.stepNumber.localeCompare(b.stepNumber)
   );
 
-  useGSAP(
-    () => {
-      const section = sectionRef.current;
-      if (!section) return;
+  useEffect(() => {
+    const section = sectionRef.current;
+    const slider = wholeSliderRef.current;
+    if (!section || !slider) return;
 
-      const isMobile = window.innerWidth < 600;
-      const slidePercent = isMobile ? -68 : -72;
-      const lineWidth = isMobile ? "85%" : "98%";
-      const lineStart = "top top";
-      const slideEnd = isMobile ? "85% 50%" : "95% bottom";
-      const lineEnd = isMobile ? "85% 50%" : "95% bottom";
-
-      const tl = gsap.timeline({
-        scrollTrigger: {
-          trigger: section,
-          start: "top top",
-          end: slideEnd,
-          scrub: 0.5,
-        },
-        defaults: {
-          ease: "none",
-        },
-      });
-
-      tl.fromTo(
-        wholeSliderRef.current,
-        { xPercent: 0 },
-        { xPercent: slidePercent }
-      );
-
-      if (reducedMotion) {
-        gsap.set(".journey-line", { width: lineWidth });
-        return;
-      }
-
-      gsap.to(".journey-line", {
-        width: lineWidth,
-        ease: "none",
-        scrollTrigger: {
-          trigger: section,
-          start: lineStart,
-          end: lineEnd,
-          scrub: 0.5,
-        },
-      });
-    },
-    { dependencies: [reducedMotion], scope: sectionRef }
-  );
-
-  useGSAP(
-    () => {
-      const section = sectionRef.current;
-      if (!section) return;
-
+    const ctx = gsap.context(() => {
       const items = allJourneyItems;
 
       if (reducedMotion) {
         items.forEach((item) => {
           gsap.set(`.jl-${item.id}`, { scaleY: 1 });
           gsap.set(`.jd-${item.id}`, { scale: 1 });
-          gsap.set(`.title-${item.id}`, { opacity: 1, clearProps: "transform" });
-          gsap.set(`.description-${item.id}`, {
-            opacity: 1,
-            clearProps: "transform",
-          });
+          gsap.set(`.title-${item.id}`, { opacity: 1, y: 0 });
+          gsap.set(`.description-${item.id}`, { opacity: 1, y: 0 });
+          gsap.set(`.badge-${item.id}`, { opacity: 1 });
         });
+        gsap.set(".journey-line", { width: "100%" });
         return;
       }
 
+      // Initial state: hide lines and dots, soften unactivated phase text
       items.forEach((item) => {
         const isTop = topData.some((topItem) => topItem.id === item.id);
         gsap.set(`.jl-${item.id}`, {
           scaleY: 0,
-          transformOrigin: isTop ? "bottom bottom" : "top top",
+          transformOrigin: isTop ? "bottom center" : "top center",
         });
         gsap.set(`.jd-${item.id}`, { scale: 0 });
-        gsap.set(`.title-${item.id}`, { opacity: 0.75, y: 0 });
-        gsap.set(`.description-${item.id}`, { opacity: 0.75, y: 0 });
+        gsap.set(`.title-${item.id}`, { opacity: 0.35, y: 8 });
+        gsap.set(`.description-${item.id}`, { opacity: 0.35, y: 5 });
+        gsap.set(`.badge-${item.id}`, { opacity: 0.45 });
       });
 
-      const titleSplits: Partial<Record<string, SplitTextInstance>> = {};
-      const descriptionSplits: Partial<Record<string, SplitTextInstance>> = {};
-      let canUseSplitText = false;
+      gsap.set(".journey-line", { width: "0%" });
 
-      try {
-        if (typeof SplitText !== "undefined" && SplitText) {
-          items.forEach((item) => {
-            titleSplits[item.id] = new SplitText(`.title-${item.id}`, {
-              type: "words, lines",
-              mask: "lines",
-            });
-            descriptionSplits[item.id] = new SplitText(
-              `.description-${item.id}`,
-              {
-                type: "words, lines",
-                mask: "lines",
-              }
-            );
-          });
-          canUseSplitText = true;
-        }
-      } catch {
-        canUseSplitText = false;
-      }
+      // Calculate translation dynamically so all phases scroll into view on any screen
+      const getScrollAmount = () => {
+        const sliderWidth = slider.scrollWidth;
+        const viewportWidth = window.innerWidth;
+        const offset = viewportWidth < 600 ? 40 : 80;
+        return -(sliderWidth - viewportWidth + offset);
+      };
 
-      const createItemTimeline = (
-        item: JourneyItem,
-        startPos: number,
-        endPos: number,
-        index: number
-      ) => {
-        const lineSelector = `.jl-${item.id}`;
-        const dotSelector = `.jd-${item.id}`;
-        const isTop = topData.some((topItem) => topItem.id === item.id);
+      // ONE unified master timeline tied to the sticky section scroll
+      const masterTl = gsap.timeline({
+        scrollTrigger: {
+          trigger: section,
+          start: "top top",
+          end: "bottom bottom",
+          scrub: 0.8,
+          invalidateOnRefresh: true,
+        },
+        defaults: { ease: "none" },
+      });
 
-        gsap.set(lineSelector, {
-          transformOrigin: isTop ? "bottom bottom" : "top top",
-        });
+      // 1. Move the horizontal slider across the screen
+      masterTl.to(
+        slider,
+        {
+          x: getScrollAmount,
+          ease: "none",
+          duration: 10,
+        },
+        0
+      );
 
-        const timeline = gsap.timeline({
-          scrollTrigger: {
-            trigger: section,
-            start: index === 0 ? "top top" : `${startPos}% 30%`,
-            end: index === 0 ? "12% 50%" : `${endPos}% 50%`,
-            scrub: 0.5,
-          },
-        });
+      // 2. Extend the glowing central wire seamlessly along the track
+      masterTl.to(
+        ".journey-line",
+        {
+          width: "100%",
+          ease: "none",
+          duration: 10,
+        },
+        0
+      );
 
-        timeline
-          .to(lineSelector, {
+      // 3. Sequentially activate each step as the pulse line reaches it
+      // Timeline runs from 0 to 10. Steps 1 through 9 are evenly mapped:
+      const stepTimings = [
+        { start: 0.25, dur: 0.65 }, // Step 01: Discover
+        { start: 1.15, dur: 0.65 }, // Step 02: Define
+        { start: 2.15, dur: 0.65 }, // Step 03: Architect
+        { start: 3.15, dur: 0.65 }, // Step 04: Plan
+        { start: 4.15, dur: 0.65 }, // Step 05: Build & Configure
+        { start: 5.15, dur: 0.65 }, // Step 06: Verify
+        { start: 6.15, dur: 0.65 }, // Step 07: Accept & Deploy
+        { start: 7.15, dur: 0.65 }, // Step 08: Enable
+        { start: 8.15, dur: 0.70 }, // Step 09: Support & Improve
+      ];
+
+      items.forEach((item, idx) => {
+        if (idx >= stepTimings.length) return;
+        const { start, dur } = stepTimings[idx];
+
+        // Vertical stem line grows from central rail
+        masterTl.to(
+          `.jl-${item.id}`,
+          {
             scaleY: 1,
-            duration: normalizedDuration * 0.4,
-          })
-          .to(
-            dotSelector,
-            {
-              scale: 1,
-              duration: normalizedDuration * 0.4,
-            },
-            "<"
-          );
+            duration: dur * 0.7,
+            ease: "power1.out",
+          },
+          start
+        );
 
-        if (canUseSplitText) {
-          const titleLines = titleSplits[item.id]?.lines || [];
-          const descriptionLines = descriptionSplits[item.id]?.lines || [];
+        // Connection dot blooms with glowing scale
+        masterTl.to(
+          `.jd-${item.id}`,
+          {
+            scale: 1,
+            duration: dur * 0.5,
+            ease: "back.out(2)",
+          },
+          start + dur * 0.3
+        );
 
-          if (titleLines.length > 0) {
-            timeline.fromTo(
-              titleLines,
-              { y: 60, opacity: 0 },
-              {
-                y: 0,
-                opacity: 1,
-                delay: -0.8 * normalizedDuration,
-                duration: normalizedDuration,
-                stagger: 0.02,
-                ease: "power2.out",
-              }
-            );
-          }
-          if (descriptionLines.length > 0) {
-            timeline.fromTo(
-              descriptionLines,
-              { y: 40, opacity: 0 },
-              {
-                y: 0,
-                opacity: 1,
-                duration: normalizedDuration,
-                stagger: 0.02,
-                ease: "power2.out",
-              },
-              "<"
-            );
-          }
-        } else {
-          timeline.to(
-            [`.title-${item.id}`, `.description-${item.id}`],
-            {
-              y: 0,
-              opacity: 1,
-              stagger: 0.05,
-              duration: normalizedDuration * 0.7,
-              ease: "power2.out",
-            },
-            "-=0.2"
-          );
-        }
+        // Phase titles and copy illuminate to 100% white
+        masterTl.to(
+          `.title-${item.id}`,
+          {
+            opacity: 1,
+            y: 0,
+            duration: dur * 0.6,
+            ease: "power2.out",
+          },
+          start + dur * 0.2
+        );
 
-        return timeline;
-      };
+        masterTl.to(
+          `.description-${item.id}`,
+          {
+            opacity: 1,
+            y: 0,
+            duration: dur * 0.6,
+            ease: "power2.out",
+          },
+          start + dur * 0.25
+        );
 
-      const positions: ReadonlyArray<readonly [number, number]> =
-        window.innerWidth < 600
-          ? [
-              [0, 15],
-              [12, 24],
-              [21, 33],
-              [30, 42],
-              [39, 51],
-              [48, 60],
-              [57, 69],
-              [66, 78],
-              [75, 87],
-            ]
-          : [
-              [0, 15],
-              [11, 25],
-              [20, 34],
-              [29, 43],
-              [38, 52],
-              [47, 61],
-              [56, 70],
-              [65, 79],
-              [74, 88],
-            ];
-
-      items.forEach((item, index) => {
-        if (index < positions.length) {
-          const [startPos, endPos] = positions[index];
-          createItemTimeline(item, startPos, endPos, index);
-        }
+        masterTl.to(
+          `.badge-${item.id}`,
+          {
+            opacity: 1,
+            duration: dur * 0.4,
+            ease: "power1.out",
+          },
+          start + dur * 0.2
+        );
       });
+    }, sectionRef);
 
-      const handleResize = () => {
-        ScrollTrigger.refresh();
-      };
+    // Refresh ScrollTrigger when images and fonts finish loading
+    const handleLoad = () => ScrollTrigger.refresh();
+    window.addEventListener("load", handleLoad);
+    const refreshTimer = setTimeout(() => ScrollTrigger.refresh(), 400);
 
-      window.addEventListener("resize", handleResize);
-
-      return () => {
-        Object.values(titleSplits).forEach((split) => split?.revert?.());
-        Object.values(descriptionSplits).forEach((split) => split?.revert?.());
-        window.removeEventListener("resize", handleResize);
-      };
-    },
-    { dependencies: [normalizedDuration, reducedMotion], scope: sectionRef }
-  );
+    return () => {
+      window.removeEventListener("load", handleLoad);
+      clearTimeout(refreshTimer);
+      ctx.revert();
+    };
+  }, [reducedMotion]);
 
   return (
     <section
@@ -479,15 +345,15 @@ export default function Timeline({
       className="h-[280vw] max-[600px]:h-[480vh] w-full relative selection:bg-blue-500 selection:text-white"
       style={sectionStyle}
     >
-      {/* Pinned Viewport Container */}
-      <div className="h-screen w-full sticky top-0 pt-[6%] overflow-hidden max-[600px]:pt-[8%] flex items-center">
+      {/* Pinned Viewport Container (Sticky top with navbar offset) */}
+      <div className="h-screen w-full sticky top-0 pt-[72px] overflow-hidden flex items-center">
         {/* Horizontal Moving Slider Track */}
         <div
           ref={wholeSliderRef}
-          className="mr-[2vw] flex h-[36vw] w-[320vw] items-center gap-[4vw] px-[4vw] max-[600px]:h-[82vh] max-[600px]:w-[940vw] max-[600px]:px-[6vw]"
+          className="mr-[2vw] flex h-[36vw] w-[320vw] items-center gap-[4vw] px-[4vw] max-[600px]:h-[82vh] max-[600px]:w-[940vw] max-[600px]:px-[6vw] will-change-transform"
         >
           {/* Left Anchor Hero Card with 3D Isometric Blue Glass Blocks */}
-          <div className="relative h-full w-[28vw] shrink-0 overflow-hidden rounded-[1.2vw] border border-blue-500/20 bg-slate-900/60 shadow-2xl max-[600px]:h-[65vw] max-[600px]:w-[80vw] max-[600px]:rounded-[4vw] flex flex-col justify-end p-[1.8vw] pb-[2.2vw] max-[600px]:p-[4vw] max-[600px]:pb-[5vw] group">
+          <div className="relative h-full w-[28vw] shrink-0 overflow-hidden rounded-[1.2vw] border border-blue-500/20 bg-slate-900/60 shadow-2xl max-[600px]:h-[65vw] max-[600px]:w-[80vw] max-[600px]:rounded-[4vw] flex flex-col justify-end p-[1.8vw] pb-[2.2vw] max-[600px]:p-[4vw] max-[600px]:pb-[5vw] group select-none">
             <img
               src={imageUrl}
               alt={imageAlt}
@@ -495,7 +361,7 @@ export default function Timeline({
               className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
               onError={(e) => {
                 (e.currentTarget as HTMLImageElement).src =
-                  'https://images.unsplash.com/photo-1518770660439-4636190af475?w=1200&auto=format&fit=crop&q=80';
+                  "https://images.unsplash.com/photo-1518770660439-4636190af475?w=1200&auto=format&fit=crop&q=80";
               }}
             />
             {/* Cinematic Gradient Overlays */}
@@ -520,16 +386,22 @@ export default function Timeline({
           <div className="relative h-full w-full">
             {/* Central Horizontal Glowing Line Track */}
             <div className="w-full absolute left-0 top-[49%] -translate-y-1/2 flex items-center h-fit z-10 pointer-events-none">
+              {/* Subtle background rail path */}
+              <div className="absolute inset-x-0 h-[2px] bg-slate-800/80 rounded-full" />
+
+              {/* Start anchor node */}
               <div
-                className="h-[.9vw] max-[600px]:h-[2.4vw] max-[600px]:w-[2.4vw] w-[.9vw] rounded-full shadow-[0_0_16px_#3b82f6] shrink-0"
+                className="h-[.9vw] max-[600px]:h-[2.4vw] max-[600px]:w-[2.4vw] w-[.9vw] rounded-full shadow-[0_0_16px_#3b82f6] shrink-0 relative z-10"
                 style={activeStyle}
               />
+              {/* Expanding glowing progress wire */}
               <div
-                className="h-[2px] w-[0%] rounded-full journey-line shadow-[0_0_12px_#3b82f6]"
+                className="h-[2px] w-[0%] rounded-full journey-line shadow-[0_0_12px_#3b82f6] relative z-10 will-change-[width]"
                 style={activeStyle}
               />
+              {/* Leading traveling node */}
               <div
-                className="h-[.9vw] max-[600px]:h-[2.4vw] max-[600px]:w-[2.4vw] w-[.9vw] rounded-full shadow-[0_0_16px_#3b82f6] shrink-0"
+                className="h-[.9vw] max-[600px]:h-[2.4vw] max-[600px]:w-[2.4vw] w-[.9vw] rounded-full shadow-[0_0_20px_#60a5fa] shrink-0 relative z-10"
                 style={activeStyle}
               />
             </div>
@@ -556,11 +428,11 @@ export default function Timeline({
                     {/* Vertical Stem Line & Dot connecting to central wire */}
                     <div className="w-full absolute left-0 bottom-[-2.5vw] max-[600px]:bottom-[-6vw] top-0 h-[calc(100%+2.5vw)] max-[600px]:h-[calc(100%+6vw)] pointer-events-none">
                       <div
-                        className={`size-[1vw] max-[600px]:size-[2.6vw] -translate-x-1/2 relative aspect-square rounded-full shadow-[0_0_12px_#3b82f6] jd-${item.id}`}
+                        className={`size-[1vw] max-[600px]:size-[2.6vw] -translate-x-1/2 relative aspect-square rounded-full shadow-[0_0_14px_#3b82f6] jd-${item.id} will-change-transform`}
                         style={{ ...activeStyle, transform: "scale(0)" }}
                       />
                       <div
-                        className={`h-[94%] w-[2px] origin-bottom rounded-full shadow-[0_0_8px_#3b82f6] jl-${item.id}`}
+                        className={`h-[94%] w-[2px] origin-bottom rounded-full shadow-[0_0_10px_#3b82f6] jl-${item.id} will-change-transform`}
                         style={{ ...activeStyle, transform: "scaleY(0)" }}
                       />
                     </div>
@@ -568,7 +440,9 @@ export default function Timeline({
                     {/* Step Card Content */}
                     <div className="space-y-[0.8vw] max-[600px]:space-y-[2vw]">
                       <div className="flex items-center gap-[0.8vw]">
-                        <span className="font-mono text-[0.9vw] max-[600px]:text-[3.2vw] font-extrabold text-blue-400 bg-blue-500/10 border border-blue-500/30 px-2 py-0.5 rounded">
+                        <span
+                          className={`badge-${item.id} font-mono text-[0.9vw] max-[600px]:text-[3.2vw] font-extrabold text-blue-400 bg-blue-500/10 border border-blue-500/30 px-2 py-0.5 rounded transition-opacity duration-300`}
+                        >
                           {item.stepNumber}
                         </span>
                         <span className="text-[0.7vw] max-[600px]:text-[2.5vw] font-mono tracking-widest text-slate-400 uppercase">
@@ -577,13 +451,13 @@ export default function Timeline({
                       </div>
 
                       <h4
-                        className={`title-${item.id} text-[2.2vw] font-extrabold text-white leading-tight tracking-tight max-[600px]:text-[5.8vw]`}
+                        className={`title-${item.id} text-[2.2vw] font-extrabold text-white leading-tight tracking-tight max-[600px]:text-[5.8vw] transition-colors duration-300 will-change-transform`}
                       >
                         {item.stepTitle}
                       </h4>
 
                       <p
-                        className={`description-${item.id} text-[1.1vw] leading-relaxed text-slate-200 font-normal max-[600px]:text-[4vw] max-w-[26vw] max-[600px]:max-w-[70vw]`}
+                        className={`description-${item.id} text-[1.1vw] leading-relaxed text-slate-200 font-normal max-[600px]:text-[4vw] max-w-[26vw] max-[600px]:max-w-[70vw] transition-colors duration-300 will-change-transform`}
                       >
                         {item.content}
                       </p>
@@ -597,9 +471,7 @@ export default function Timeline({
             <div className="flex h-1/2 w-full items-start justify-start gap-[1vw] pt-[2.5vw] max-[600px]:pt-[6vw]">
               {/* Period Label Anchor */}
               <div className="h-full w-[24vw] shrink-0 flex flex-col justify-start pr-[2vw] max-[600px]:w-[70vw] max-[600px]:pr-[4vw]">
-                <p
-                  className="text-[1.2vw] font-mono tracking-wider font-semibold uppercase leading-none max-[600px]:text-[3.6vw] text-blue-400"
-                >
+                <p className="text-[1.2vw] font-mono tracking-wider font-semibold uppercase leading-none max-[600px]:text-[3.6vw] text-blue-400">
                   {periodLabel}
                 </p>
                 <p className="mt-[1vw] text-[0.95vw] max-[600px]:text-[3vw] text-slate-300 leading-relaxed">
@@ -617,11 +489,11 @@ export default function Timeline({
                     {/* Vertical Stem Line & Dot connecting to central wire */}
                     <div className="w-full absolute left-0 top-[-2.5vw] max-[600px]:top-[-6vw] bottom-0 h-[calc(100%+2.5vw)] max-[600px]:h-[calc(100%+6vw)] pointer-events-none">
                       <div
-                        className={`h-[94%] origin-top w-[2px] rounded-full shadow-[0_0_8px_#3b82f6] jl-${item.id}`}
+                        className={`h-[94%] origin-top w-[2px] rounded-full shadow-[0_0_10px_#3b82f6] jl-${item.id} will-change-transform`}
                         style={{ ...activeStyle, transform: "scaleY(0)" }}
                       />
                       <div
-                        className={`size-[1vw] max-[600px]:size-[2.6vw] -translate-x-1/2 relative aspect-square rounded-full shadow-[0_0_12px_#3b82f6] jd-${item.id}`}
+                        className={`size-[1vw] max-[600px]:size-[2.6vw] -translate-x-1/2 relative aspect-square rounded-full shadow-[0_0_14px_#3b82f6] jd-${item.id} will-change-transform`}
                         style={{ ...activeStyle, transform: "scale(0)" }}
                       />
                     </div>
@@ -629,7 +501,9 @@ export default function Timeline({
                     {/* Step Card Content */}
                     <div className="space-y-[0.8vw] max-[600px]:space-y-[2vw]">
                       <div className="flex items-center gap-[0.8vw]">
-                        <span className="font-mono text-[0.9vw] max-[600px]:text-[3.2vw] font-extrabold text-blue-400 bg-blue-500/10 border border-blue-500/30 px-2 py-0.5 rounded">
+                        <span
+                          className={`badge-${item.id} font-mono text-[0.9vw] max-[600px]:text-[3.2vw] font-extrabold text-blue-400 bg-blue-500/10 border border-blue-500/30 px-2 py-0.5 rounded transition-opacity duration-300`}
+                        >
                           {item.stepNumber}
                         </span>
                         <span className="text-[0.7vw] max-[600px]:text-[2.5vw] font-mono tracking-widest text-slate-300 uppercase">
@@ -638,13 +512,13 @@ export default function Timeline({
                       </div>
 
                       <h4
-                        className={`title-${item.id} text-[2.2vw] font-extrabold text-white leading-tight tracking-tight max-[600px]:text-[5.8vw]`}
+                        className={`title-${item.id} text-[2.2vw] font-extrabold text-white leading-tight tracking-tight max-[600px]:text-[5.8vw] transition-colors duration-300 will-change-transform`}
                       >
                         {item.stepTitle}
                       </h4>
 
                       <p
-                        className={`description-${item.id} text-[1.1vw] leading-relaxed text-slate-200 font-normal max-[600px]:text-[4vw] max-w-[26vw] max-[600px]:max-w-[70vw]`}
+                        className={`description-${item.id} text-[1.1vw] leading-relaxed text-slate-200 font-normal max-[600px]:text-[4vw] max-w-[26vw] max-[600px]:max-w-[70vw] transition-colors duration-300 will-change-transform`}
                       >
                         {item.content}
                       </p>

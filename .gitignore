@@ -50,6 +50,7 @@ plans/
 src/imports/
 pulse logo final 3.svg
 public/pulse-41-intro.mp4
+public/videos/pulse41-hero.mp4
 
 # Legacy Vite & Platform Scaffolds
 vite.config.ts

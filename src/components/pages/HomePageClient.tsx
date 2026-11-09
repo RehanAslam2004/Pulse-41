@@ -1,63 +1,20 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState } from 'react'
 import Link from 'next/link'
 import { C } from '@/lib/design/tokens'
 import { Reveal } from '@/components/motion/Reveal'
 import {
-  GraduationCap,
-  Heart,
-  Landmark,
-  ShoppingBag,
-  Radio,
-  Building2,
-  Rocket,
   ArrowRight,
   ArrowUpRight,
 } from 'lucide-react'
+import { HeroVideo } from '@/components/home/HeroVideo'
+import { AnimatedTransitionText } from '@/components/home/AnimatedTransitionText'
 import { PaddleStackingSection } from '@/components/home/PaddleStackingSection'
+import { ProudClientsSection } from '@/components/home/ProudClientsSection'
 import Timeline from '@/components/ui/timeline'
 import { FeatureBento } from '@/components/ui/feature-bento'
 import { TiltCard } from '@/components/ui/tilt-card'
-import { InfiniteSlider } from '@/components/ui/infinite-slider'
-import { VideoShowcaseSection } from '@/components/home/VideoShowcaseSection'
-
-const heroSlides = [
-  { src: 'https://images.unsplash.com/photo-1551434678-e076c223a692?w=900&q=85', alt: 'Technology team collaborating', label: 'COLLABORATION' },
-  { src: 'https://images.unsplash.com/photo-1573164713988-8665fc963095?w=900&q=85', alt: 'AI and data analytics', label: 'AI & DATA' },
-  { src: 'https://images.unsplash.com/photo-1518770660439-4636190af475?w=900&q=85', alt: 'Digital transformation', label: 'INNOVATION' },
-  { src: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=900&q=85', alt: 'Business analytics dashboard', label: 'ANALYTICS' },
-]
-
-const marqueeItems = [
-  'AI & INTELLIGENT AUTOMATION',
-  'SOFTWARE & PRODUCT ENGINEERING',
-  'CLOUD & DEVOPS PLATFORMS',
-  'CYBERSECURITY & DIGITAL TRUST',
-  'DATA & EXECUTIVE INTELLIGENCE',
-  'DIGITAL MARKETING & GROWTH',
-  'MANAGED IT & OUTSOURCING',
-  'CONSULTING & ASSURANCE',
-  'AI CUSTOMER EXPERIENCE',
-  'ENTERPRISE OPERATIONS',
-  'AI & INTELLIGENT AUTOMATION',
-  'SOFTWARE & PRODUCT ENGINEERING',
-  'CLOUD & DEVOPS PLATFORMS',
-  'CYBERSECURITY & DIGITAL TRUST',
-  'DATA & EXECUTIVE INTELLIGENCE',
-  'DIGITAL MARKETING & GROWTH',
-  'MANAGED IT & OUTSOURCING',
-  'CONSULTING & ASSURANCE',
-]
-
-const clientLogos = [
-  { name: 'Nintendo', src: '/logos/nintendo_logo.svg' },
-  { name: 'jQuery', src: '/logos/jquery_logo.svg' },
-  { name: 'Prada', src: '/logos/prada_logo.svg' },
-  { name: 'Apple Music', src: '/logos/apple_music_logo.svg' },
-  { name: 'Chrome', src: '/logos/chrome_logo.svg' },
-  { name: 'Strava', src: '/logos/strava_logo.svg' },
-]
 
 import type { Industry } from '@/content/industries'
 import { fallbackBlogPosts } from '@/content/blog'
@@ -79,191 +36,20 @@ export function HomePageClient({
     : fallbackCaseStudies
   const [activeCaseIdx, setActiveCaseIdx] = useState(0)
   const activeCase = allCases[activeCaseIdx] || allCases[0]
-  const [heroSlide, setHeroSlide] = useState(0)
-  const [heroFading, setHeroFading] = useState(false)
-
-  const goToSlide = useCallback((idx: number) => {
-    setHeroFading(true)
-    setTimeout(() => {
-      setHeroSlide(idx)
-      setHeroFading(false)
-    }, 350)
-  }, [])
-
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setHeroSlide((prev) => {
-        const next = (prev + 1) % heroSlides.length
-        setHeroFading(true)
-        setTimeout(() => setHeroFading(false), 350)
-        return next
-      })
-    }, 4500)
-    return () => clearInterval(timer)
-  }, [])
 
   return (
     <div className="page-enter">
-      {/* ── HERO ─────────────────────────────────────────────────────────── */}
-      <section style={{ background: C.offWhite, paddingTop: 88, minHeight: 'calc(100vh - 40px)', display: 'flex', alignItems: 'center' }}>
-        <div style={{ maxWidth: 1280, margin: '0 auto', padding: '36px 32px 56px', width: '100%' }}>
-          <div className="p41-hero-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 72, alignItems: 'center' }}>
-            <div>
-              <div className="section-label hero-animate hero-d1">TECH · THINK · THRIVE</div>
-              <h1
-                className="hero-animate hero-d2"
-                style={{
-                  fontSize: 'clamp(52px,6vw,88px)',
-                  fontWeight: 800,
-                  lineHeight: 0.95,
-                  color: '#0F172A',
-                  letterSpacing: '-0.04em',
-                  margin: '0 0 28px',
-                }}
-              >
-                BUILDING
-                <br />
-                WHAT'S
-                <br />
-                <span style={{ color: C.blue }}>NEXT.</span>
-              </h1>
-              <p
-                className="hero-animate hero-d3"
-                style={{ fontSize: 18, lineHeight: 1.78, color: C.textMuted, maxWidth: 480, margin: '0 0 44px' }}
-              >
-                Pulse41 builds AI-powered products, digital experiences and technology solutions for organizations ready to move from complexity to measurable progress.
-              </p>
-              <div className="hero-animate hero-d4" style={{ display: 'flex', gap: 14, flexWrap: 'wrap' }}>
-                <Link href="/solutions" className="btn-primary" style={{ textDecoration: 'none' }}>
-                  Explore Solutions <span className="arrow">→</span>
-                </Link>
-                <Link href="/contact" className="btn-secondary" style={{ textDecoration: 'none' }}>
-                  Start a Project <span className="arrow">→</span>
-                </Link>
-              </div>
+      {/* ── FULL-VIEWPORT CLEAN VIDEO HERO (WEBPHASE-STYLE) ───────────── */}
+      <HeroVideo />
 
-              <div
-                className="hero-animate hero-d5"
-                style={{ display: 'flex', gap: 40, marginTop: 56, paddingTop: 32, borderTop: `1px solid ${C.gray}` }}
-              >
-                {[
-                  ['8 Major', 'Practices'],
-                  ['10 Enterprise', 'Platforms'],
-                  ['Global', 'Delivery'],
-                ].map(([v, l]) => (
-                  <div key={l}>
-                    <div style={{ fontSize: 20, fontWeight: 800, color: C.navy, letterSpacing: '-0.02em' }}>{v}</div>
-                    <div style={{ fontSize: 12, color: C.textMuted, fontWeight: 600, marginTop: 3, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-                      {l}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-            <div className="hero-animate hero-d6" style={{ position: 'relative' }}>
-              <div style={{ borderRadius: 20, overflow: 'hidden', aspectRatio: '4/3', boxShadow: '0 32px 80px rgba(30,41,59,0.18)', position: 'relative' }}>
-                {heroSlides.map((slide, i) => (
-                  <img
-                    key={i}
-                    src={slide.src}
-                    alt={slide.alt}
-                    style={{
-                      position: i === 0 ? 'relative' : 'absolute',
-                      inset: 0,
-                      width: '100%',
-                      height: '100%',
-                      objectFit: 'cover',
-                      display: 'block',
-                      opacity: i === heroSlide ? (heroFading ? 0 : 1) : 0,
-                      transition: 'opacity 0.6s cubic-bezier(0.4,0,0.2,1)',
-                      zIndex: i === heroSlide ? 1 : 0,
-                    }}
-                  />
-                ))}
-                <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg,transparent 50%,rgba(15,23,42,0.55) 100%)', zIndex: 2 }} />
-                <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '20px 24px', zIndex: 3, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <span style={{ fontSize: 11, fontWeight: 800, color: 'rgba(255,255,255,0.7)', letterSpacing: '0.16em' }}>
-                    {heroSlides[heroSlide].label}
-                  </span>
-                  <div style={{ display: 'flex', gap: 7, alignItems: 'center' }}>
-                    {heroSlides.map((_, i) => (
-                      <button
-                        key={i}
-                        onClick={() => goToSlide(i)}
-                        aria-label={`Slide ${i + 1}`}
-                        style={{
-                          width: i === heroSlide ? 22 : 7,
-                          height: 7,
-                          borderRadius: 4,
-                          border: 'none',
-                          cursor: 'pointer',
-                          padding: 0,
-                          background: i === heroSlide ? C.lightBlue : 'rgba(255,255,255,0.4)',
-                          transition: 'all 0.35s cubic-bezier(0.4,0,0.2,1)',
-                        }}
-                      />
-                    ))}
-                  </div>
-                </div>
-              </div>
-              <div style={{ position: 'absolute', top: 16, right: 16, background: 'rgba(15,23,42,0.72)', backdropFilter: 'blur(8px)', borderRadius: 8, padding: '5px 12px', zIndex: 4 }}>
-                <span style={{ fontSize: 11, fontWeight: 700, color: 'white', letterSpacing: '0.1em' }}>
-                  {String(heroSlide + 1).padStart(2, '0')} / {String(heroSlides.length).padStart(2, '0')}
-                </span>
-              </div>
-            </div>
-          </div>
-        </div>
-        <style>{`.p41-hero-grid{display:grid;grid-template-columns:1fr 1fr;gap:72px;} @media(max-width:900px){.p41-hero-grid{grid-template-columns:1fr!important;gap:48px!important;}}`}</style>
-      </section>
-
-      {/* ── CLIENT INFINITE SLIDER (HARMONIZED #F8FAFC BACKGROUND) ────── */}
-      <section className="relative overflow-hidden bg-[#F8FAFC] py-8 sm:py-10 border-t border-b border-slate-200/60">
-        <div className="relative w-full overflow-hidden">
-          {/* Edge gradient masks for seamless off-white transition */}
-          <div className="absolute left-0 top-0 bottom-0 w-24 sm:w-36 bg-gradient-to-r from-[#F8FAFC] to-transparent z-10 pointer-events-none" />
-          <div className="absolute right-0 top-0 bottom-0 w-24 sm:w-36 bg-gradient-to-l from-[#F8FAFC] to-transparent z-10 pointer-events-none" />
-
-          <InfiniteSlider gap={56} duration={35} durationOnHover={70} className="w-full items-center">
-            {[...clientLogos, ...clientLogos, ...clientLogos].map((logo, idx) => (
-              <div key={idx} className="flex items-center justify-center px-4">
-                <img
-                  src={logo.src}
-                  alt={`${logo.name} logo`}
-                  className="h-[52px] sm:h-[65px] w-auto object-contain transition-transform duration-300 hover:scale-105"
-                  loading="eager"
-                />
-              </div>
-            ))}
-          </InfiniteSlider>
-        </div>
-      </section>
-
-      {/* ── STATISTICS ─────────────────────────────────────────────────── */}
-      <section style={{ background: C.offWhite, borderBottom: `1px solid ${C.gray}` }}>
-        <div style={{ maxWidth: 1280, margin: '0 auto', padding: '0 32px' }}>
-          <Reveal type="stagger" className="p41-stats-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)' }}>
-            {[
-              ['8', 'Major Practices'],
-              ['10', 'Productized Solutions'],
-              ['12+', 'Sectors Served'],
-              ['100%', 'Delivery Commitment'],
-            ].map(([v, l], i) => (
-              <div key={i} style={{ padding: '52px 32px', textAlign: 'center', borderRight: i < 3 ? `1px solid ${C.gray}` : 'none' }}>
-                <div style={{ fontSize: 52, fontWeight: 800, color: C.navy, letterSpacing: '-0.04em', lineHeight: 1 }}>{v}</div>
-                <div style={{ fontSize: 12, fontWeight: 700, color: C.textMuted, marginTop: 10, textTransform: 'uppercase', letterSpacing: '0.08em' }}>{l}</div>
-              </div>
-            ))}
-          </Reveal>
-        </div>
-        <style>{`.p41-stats-grid{display:grid;grid-template-columns:repeat(4,1fr);} @media(max-width:768px){.p41-stats-grid{grid-template-columns:repeat(2,1fr)!important;}}`}</style>
-      </section>
+      {/* ── ANIMATED RIGHT-TO-CENTER TRANSITION STATEMENT ─────────────── */}
+      <AnimatedTransitionText />
 
       {/* ── PADDLE-STYLE 5-SLIDE STACKING ADVANTAGE SECTION ────────────── */}
       <PaddleStackingSection />
 
-      {/* ── PULSE41 INTRO VIDEO SHOWCASE ─────────────────────────────── */}
-      <VideoShowcaseSection />
+      {/* ── PROUD TO HAVE WORKED WITH (WEBPHASE / MORLUTO/REA STYLE) ──── */}
+      <ProudClientsSection />
 
       {/* ── OUR PROCESS (21ST.DEV PINNED HORIZONTAL TIMELINE) ────────── */}
       <Timeline />
