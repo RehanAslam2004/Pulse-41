@@ -34,6 +34,26 @@ function copyDirRecursive(src, dest) {
 console.log('[1/4] Copying public and static assets...')
 copyDirRecursive(publicSrc, publicDest)
 copyDirRecursive(staticSrc, staticDest)
+const publicNextStaticDest = path.join(standaloneDir, 'public', '_next', 'static')
+copyDirRecursive(staticSrc, publicNextStaticDest)
+
+const fixStaticSrc = path.join(rootDir, 'fix-static.mjs')
+if (fs.existsSync(fixStaticSrc)) {
+  fs.copyFileSync(fixStaticSrc, path.join(standaloneDir, 'fix-static.mjs'))
+}
+
+// Ensure standalone package.json has the production start and setup-static scripts
+const standalonePkgPath = path.join(standaloneDir, 'package.json')
+if (fs.existsSync(standalonePkgPath)) {
+  try {
+    const pkg = JSON.parse(fs.readFileSync(standalonePkgPath, 'utf8'))
+    pkg.scripts = {
+      start: 'node fix-static.mjs && node --disable-wasm-trap-handler --max-old-space-size=512 server.js',
+      'setup-static': 'node fix-static.mjs',
+    }
+    fs.writeFileSync(standalonePkgPath, JSON.stringify(pkg, null, 2))
+  } catch (e) {}
+}
 
 console.log('[2/4] Preparing production environment variables...')
 if (fs.existsSync(envSrc)) {
