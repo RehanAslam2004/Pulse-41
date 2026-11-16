@@ -8,6 +8,8 @@ node_modules/
 out/
 build/
 dist/
+pulse41-deploy.zip
+pulse41-update.zip
 .cache/
 .vite/
 vite.config.*.timestamp-*

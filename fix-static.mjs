@@ -11,7 +11,8 @@ try {
 
 console.log('2. Copying static files to public/_next/static...')
 try {
-  execSync('mkdir -p public/_next && cp -r .next/static public/_next/')
+  execSync('rm -rf public/_next/static && mkdir -p public/_next && cp -r .next/static public/_next/')
+  execSync('chmod -R 755 public/_next')
   console.log('✓ Successfully copied to public/_next/static!')
 } catch (e) {
   console.log('cp error:', e.message)
@@ -20,7 +21,7 @@ try {
 try {
   if (fs.existsSync('../pulse41.com')) {
     console.log('3. Also copying to domain root pulse41.com/_next/static...')
-    execSync('mkdir -p ../pulse41.com/_next && cp -r .next/static ../pulse41.com/_next/')
+    execSync('rm -rf ../pulse41.com/_next/static && mkdir -p ../pulse41.com/_next && cp -r .next/static ../pulse41.com/_next/')
     execSync('chmod -R 755 ../pulse41.com/_next')
     console.log('✓ Successfully copied to pulse41.com/_next/static!')
   }

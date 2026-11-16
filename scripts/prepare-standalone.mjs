@@ -47,6 +47,7 @@ const standalonePkgPath = path.join(standaloneDir, 'package.json')
 if (fs.existsSync(standalonePkgPath)) {
   try {
     const pkg = JSON.parse(fs.readFileSync(standalonePkgPath, 'utf8'))
+    delete pkg.devDependencies
     pkg.scripts = {
       start: 'node fix-static.mjs && node --disable-wasm-trap-handler --max-old-space-size=512 server.js',
       'setup-static': 'node fix-static.mjs',
@@ -93,17 +94,17 @@ if (fs.existsSync(serverJsPath)) {
   fs.writeFileSync(serverJsPath, serverCode)
 }
 
-console.log('[4/4] Creating zip bundle (pulse41-deploy.zip)...')
-const zipPath = path.join(rootDir, 'pulse41-deploy.zip')
+console.log('[4/4] Creating update bundle (pulse41-update.zip, excludes node_modules for safe cPanel updates)...')
+const updateZipPath = path.join(rootDir, 'pulse41-update.zip')
 try {
-  if (fs.existsSync(zipPath)) {
-    fs.unlinkSync(zipPath)
+  if (fs.existsSync(updateZipPath)) {
+    fs.unlinkSync(updateZipPath)
   }
   execSync(
-    `powershell -Command "Compress-Archive -Path '${standaloneDir}\\*' -DestinationPath '${zipPath}' -Force"`,
+    `powershell -Command "Get-ChildItem -Path '${standaloneDir}' -Force | Where-Object { $_.Name -ne 'node_modules' } | Compress-Archive -DestinationPath '${updateZipPath}' -Force"`,
     { stdio: 'inherit' }
   )
-  console.log(`\n SUCCESS! Deployment bundle created at: ${zipPath}`)
+  console.log(`\n SUCCESS! Update bundle (without node_modules) created at: ${updateZipPath}`)
 } catch (e) {
-  console.log('\nTip: You can manually zip the contents of .next/standalone/ to upload to cPanel.')
+  console.log('\nTip: You can manually zip the contents of .next/standalone/ (excluding node_modules) to upload to cPanel.')
 }
