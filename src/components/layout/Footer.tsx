@@ -59,7 +59,7 @@ export function Footer() {
   ]
 
   return (
-    <footer style={{ background: C.navy, borderTop: '1px solid rgba(203,213,225,0.06)', padding: '72px 32px 0' }}>
+    <footer className="px-4 sm:px-8 pt-14 sm:pt-18 pb-0" style={{ background: C.navy, borderTop: '1px solid rgba(203,213,225,0.06)' }}>
       <div style={{ maxWidth: 1280, margin: '0 auto' }}>
         <div
           style={{ display: 'grid', gridTemplateColumns: '1.8fr 1fr 1fr 1fr 1fr', gap: 40, marginBottom: 60 }}
@@ -121,7 +121,7 @@ export function Footer() {
           }}
         >
           <span style={{ fontSize: 13, color: '#64748B' }}>© 2026 Pulse41. All rights reserved.</span>
-          <div style={{ display: 'flex', gap: 24 }}>
+          <div style={{ display: 'flex', gap: '16px 24px', flexWrap: 'wrap' }}>
             {[
               { label: 'Privacy Policy', href: '/privacy' },
               { label: 'Terms & Conditions', href: '/terms' },

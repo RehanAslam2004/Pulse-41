@@ -13,13 +13,14 @@
 }
 
 * { box-sizing: border-box; }
-html { scroll-behavior: smooth; }
+html { position: relative; scroll-behavior: smooth; overflow-x: clip; }
 
 body {
   font-family: var(--font-inter, 'Inter', sans-serif);
   background-color: var(--off-white);
   color: var(--navy);
   margin: 0; padding: 0;
+  overflow-x: clip;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -185,12 +186,12 @@ body {
 .ai-tag { transition: background 0.2s, border-color 0.2s, transform 0.15s; }
 .ai-tag:hover { background: rgba(59,130,246,0.18) !important; border-color: var(--blue) !important; transform: translateY(-2px); }
 
-/* ── Page transition ──────────────────────────────────────────────── */
+/* ── Page transition (opacity-only so position:sticky ancestors never break) ── */
 @keyframes page-in {
-  from { opacity: 0; transform: translateY(16px); }
-  to   { opacity: 1; transform: translateY(0); }
+  from { opacity: 0; }
+  to   { opacity: 1; }
 }
-.page-enter { animation: page-in 0.45s cubic-bezier(0.22,1,0.36,1) both; }
+.page-enter { animation: page-in 0.35s cubic-bezier(0.22,1,0.36,1) both; }
 
 /* ── Accordion ────────────────────────────────────────────────────── */
 .accordion-body {

@@ -9,7 +9,7 @@ function LogoCard({ client }: { client: ClientCard }) {
 
   return (
     <div
-      className="group relative flex aspect-square w-full flex-col items-center justify-center overflow-hidden rounded-[24px] p-7 transition-all duration-300 ease-out hover:-translate-y-1 hover:shadow-[0_20px_40px_-15px_rgba(37,99,235,0.18)]"
+      className="group relative flex aspect-square w-full flex-col items-center justify-center overflow-hidden rounded-[20px] sm:rounded-[24px] p-5 sm:p-7 transition-all duration-300 ease-out hover:-translate-y-1 hover:shadow-[0_20px_40px_-15px_rgba(37,99,235,0.18)]"
       style={{
         background: client.background,
         border: `1px solid ${client.borderColor || 'rgba(203, 213, 225, 0.6)'}`,
@@ -31,7 +31,7 @@ function LogoCard({ client }: { client: ClientCard }) {
         />
       ) : (
         <span
-          className={`relative z-10 text-lg font-extrabold tracking-tight ${
+          className={`relative z-10 text-base sm:text-lg font-extrabold tracking-tight ${
             isLightInk ? 'text-white' : 'text-[#0F172A]'
           }`}
         >
@@ -40,7 +40,7 @@ function LogoCard({ client }: { client: ClientCard }) {
       )}
 
       <span
-        className={`relative z-10 mt-4 text-[10px] font-bold uppercase tracking-[0.14em] ${
+        className={`relative z-10 mt-3 sm:mt-4 text-[10px] font-semibold tracking-[0.06em] text-center ${
           isLightInk ? 'text-blue-100/80' : 'text-slate-500'
         }`}
       >
@@ -50,7 +50,7 @@ function LogoCard({ client }: { client: ClientCard }) {
   );
 }
 
-/** Vertical endlessly scrolling column of partner cards (hydration-safe, works regardless of OS reduced-motion setting). */
+/** Vertical endlessly scrolling column of partner cards. */
 function LogoColumn({
   items,
   reverse,
@@ -65,7 +65,7 @@ function LogoColumn({
   return (
     <div className="relative h-full overflow-hidden">
       <motion.div
-        className="flex flex-col gap-4 pb-4 will-change-transform"
+        className="flex flex-col gap-3.5 sm:gap-4 pb-3.5 sm:pb-4 will-change-transform"
         animate={{ y: reverse ? ['-50%', '0%'] : ['0%', '-50%'] }}
         transition={{ duration, ease: 'linear', repeat: Infinity }}
       >
@@ -84,49 +84,79 @@ export function ProudClientsSection() {
   return (
     <section
       aria-labelledby="proud-clients-heading"
-      className="relative overflow-hidden bg-[#F8FAFC] py-20 sm:py-28 border-y border-slate-200/80"
+      className="relative overflow-hidden bg-[#F8FAFC] py-16 sm:py-24 lg:py-28 border-y border-slate-200/80"
       style={{ fontFamily: "var(--font-inter, 'Inter', sans-serif)" }}
     >
-      {/* Subtle architectural grid & radial blue glow matching Pulse41 theme */}
+      {/* Subtle ambient Pulse41 radial glow */}
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute -left-24 top-1/2 -translate-y-1/2 h-[420px] w-[420px] rounded-full bg-blue-500/10 blur-[110px]"
+        className="pointer-events-none absolute -left-24 top-1/2 -translate-y-1/2 h-[380px] w-[380px] rounded-full bg-blue-500/10 blur-[110px]"
       />
 
-      <div className="relative mx-auto grid max-w-[1280px] grid-cols-1 items-center gap-14 px-6 lg:grid-cols-2 lg:gap-12 lg:px-8">
-        {/* ── Left: Pulse41 blue organic shape, headline, sticker and looping arrow ── */}
-        <div className="relative flex min-h-[360px] items-center sm:min-h-[440px]">
-          {/* Organic Pulse41 Blue flower/cloud backdrop */}
+      <div className="relative mx-auto grid max-w-[1280px] grid-cols-1 items-center gap-10 sm:gap-14 px-4 sm:px-6 lg:grid-cols-2 lg:gap-12 lg:px-8">
+        {/* ── Left: Tech-aligned architectural backdrop + headline ── */}
+        <div className="relative flex min-h-[260px] sm:min-h-[400px] items-center">
+          {/* Tech-aligned geometric circuit & orbital node backdrop */}
           <motion.svg
             aria-hidden="true"
-            viewBox="0 0 400 400"
-            className="pointer-events-none absolute -left-14 top-1/2 w-[330px] -translate-y-1/2 sm:-left-16 sm:w-[420px]"
-            initial={{ scale: 0.88, opacity: 0 }}
-            whileInView={{ scale: 1, opacity: 1 }}
-            viewport={{ once: true, amount: 0.35 }}
-            transition={{ duration: 0.85, ease: [0.16, 1, 0.3, 1] }}
+            viewBox="0 0 440 440"
+            className="pointer-events-none absolute -left-10 sm:-left-16 top-1/2 w-[300px] sm:w-[430px] -translate-y-1/2 opacity-90"
+            initial={{ opacity: 0, scale: 0.94 }}
+            whileInView={{ opacity: 0.9, scale: 1 }}
+            viewport={{ once: true, amount: 0.3 }}
+            transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
           >
             <defs>
-              <linearGradient id="p41BlobGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stopColor="#DBEAFE" />
-                <stop offset="55%" stopColor="#BFDBFE" />
-                <stop offset="100%" stopColor="#93C5FD" />
+              <radialGradient id="p41TechCore" cx="50%" cy="50%" r="50%">
+                <stop offset="0%" stopColor="#93C5FD" stopOpacity="0.32" />
+                <stop offset="65%" stopColor="#DBEAFE" stopOpacity="0.18" />
+                <stop offset="100%" stopColor="#F8FAFC" stopOpacity="0" />
+              </radialGradient>
+              <linearGradient id="p41CircuitStroke" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stopColor="#3B82F6" stopOpacity="0.35" />
+                <stop offset="100%" stopColor="#93C5FD" stopOpacity="0.1" />
               </linearGradient>
             </defs>
-            <path
-              fill="url(#p41BlobGrad)"
-              d="M206 22c40-6 62 34 58 70 34-26 86-16 96 26 10 40-24 66-56 74 42 10 74 50 54 92-20 40-70 34-98 10 4 44-30 84-74 76-46-8-58-58-44-96-36 22-92 14-104-30-12-46 32-74 66-78-36-14-56-62-26-96 28-32 76-20 98 8-6-26 2-50 30-56z"
+
+            {/* Soft luminous aura */}
+            <circle cx="220" cy="220" r="200" fill="url(#p41TechCore)" />
+
+            {/* Architectural orbital & isometric rings */}
+            <circle cx="220" cy="220" r="176" fill="none" stroke="url(#p41CircuitStroke)" strokeWidth="1.25" strokeDasharray="6 6" />
+            <circle cx="220" cy="220" r="132" fill="none" stroke="#BFDBFE" strokeWidth="1.25" strokeOpacity="0.7" />
+            <circle cx="220" cy="220" r="88" fill="none" stroke="#93C5FD" strokeWidth="1.5" strokeOpacity="0.45" />
+
+            {/* Geometric circuit axes */}
+            <line x1="28" y1="220" x2="412" y2="220" stroke="#BFDBFE" strokeWidth="1" strokeOpacity="0.55" />
+            <line x1="220" y1="28" x2="220" y2="412" stroke="#BFDBFE" strokeWidth="1" strokeOpacity="0.55" />
+            <path d="M96 96 L156 156 M284 284 L344 344 M344 96 L284 156 M156 284 L96 344" stroke="#93C5FD" strokeWidth="1.2" strokeOpacity="0.5" />
+
+            {/* Hexagonal glass frame */}
+            <polygon
+              points="220,74 346,147 346,293 220,366 94,293 94,147"
+              fill="none"
+              stroke="#3B82F6"
+              strokeWidth="1.25"
+              strokeOpacity="0.22"
             />
+
+            {/* Precision node markers */}
+            <circle cx="220" cy="74" r="4.5" fill="#3B82F6" fillOpacity="0.55" />
+            <circle cx="346" cy="147" r="4.5" fill="#3B82F6" fillOpacity="0.45" />
+            <circle cx="346" cy="293" r="4" fill="#60A5FA" fillOpacity="0.55" />
+            <circle cx="220" cy="366" r="4.5" fill="#3B82F6" fillOpacity="0.45" />
+            <circle cx="94" cy="293" r="4" fill="#60A5FA" fillOpacity="0.45" />
+            <circle cx="94" cy="147" r="4.5" fill="#3B82F6" fillOpacity="0.55" />
           </motion.svg>
 
-          <div className="relative z-10 pl-2 sm:pl-6">
+          <div className="relative z-10 pl-1 sm:pl-6">
             <motion.h2
               id="proud-clients-heading"
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, amount: 0.4 }}
+              viewport={{ once: true, amount: 0.35 }}
               transition={{ duration: 0.75, ease: [0.16, 1, 0.3, 1], delay: 0.08 }}
-              className="text-[clamp(38px,4.8vw,62px)] font-extrabold leading-[1.04] tracking-[-0.035em] text-[#0F172A]"
+              className="text-[clamp(34px,4.8vw,62px)] font-extrabold leading-[1.06] tracking-[-0.035em] text-[#0F172A]"
             >
               Proud to have
               <br />
@@ -158,7 +188,7 @@ export function ProudClientsSection() {
 
         {/* ── Right: two scrolling columns of Pulse41-themed partner cards ── */}
         <div
-          className="relative mx-auto grid h-[440px] w-full max-w-[480px] grid-cols-2 gap-4 sm:h-[540px]"
+          className="relative mx-auto grid h-[380px] sm:h-[520px] w-full max-w-[480px] grid-cols-2 gap-3.5 sm:gap-4"
           style={{
             maskImage: 'linear-gradient(to bottom, transparent 0, #000 10%, #000 90%, transparent 100%)',
             WebkitMaskImage:

@@ -7,45 +7,44 @@ const EASE_OUT: [number, number, number, number] = [0.16, 1, 0.3, 1];
 
 /**
  * Scroll-driven right-to-center statement bridging the Hero Video and the Core Advantage section.
- * Uses Pulse41's Inter typography and Navy/Blue theme palette, with zero SSR/client hydration mismatch.
+ * Uses Pulse41's Inter typography and Navy/Blue palette with clean responsive clamping on mobile.
  */
 export function AnimatedTransitionText() {
   const sectionRef = useRef<HTMLElement>(null);
 
   const { scrollYProgress } = useScroll({
     target: sectionRef,
-    offset: ['start end', 'center center'],
+    offset: ['start 92%', 'center center'],
   });
 
   const smoothProgress = useSpring(scrollYProgress, {
-    stiffness: 90,
-    damping: 24,
+    stiffness: 95,
+    damping: 26,
     restDelta: 0.001,
   });
 
-  // Each line glides from right to center as the user scrolls down from the video hero
-  const xLine1 = useTransform(smoothProgress, [0, 1], ['22%', '0%']);
-  const xLine2 = useTransform(smoothProgress, [0, 1], ['32%', '0%']);
-  const xLine3 = useTransform(smoothProgress, [0, 1], ['42%', '0%']);
-  const opacityAll = useTransform(smoothProgress, [0, 0.35, 1], [0.2, 0.85, 1]);
+  const xLine1 = useTransform(smoothProgress, [0, 1], ['10%', '0%']);
+  const xLine2 = useTransform(smoothProgress, [0, 1], ['16%', '0%']);
+  const xLine3 = useTransform(smoothProgress, [0, 1], ['22%', '0%']);
+  const opacityAll = useTransform(smoothProgress, [0, 0.35, 1], [0.25, 0.85, 1]);
 
   return (
     <section
       ref={sectionRef}
       aria-label="What Pulse41 builds"
-      className="relative overflow-hidden bg-[#F8FAFC] py-24 sm:py-32 border-b border-slate-200/80"
+      className="relative overflow-hidden bg-[#F8FAFC] py-16 sm:py-28 lg:py-32 border-b border-slate-200/80"
       style={{ fontFamily: "var(--font-inter, 'Inter', sans-serif)" }}
     >
       {/* Subtle Pulse41 ambient blue radial glow */}
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 h-[320px] w-[680px] rounded-full bg-blue-500/5 blur-[110px]"
+        className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 h-[260px] w-[560px] rounded-full bg-blue-500/5 blur-[110px]"
       />
 
-      <div className="relative mx-auto max-w-[1280px] px-6 text-center">
+      <div className="relative mx-auto max-w-[1280px] px-4 sm:px-6 text-center">
         <motion.h2
           style={{ opacity: opacityAll }}
-          className="mx-auto max-w-[1180px] font-extrabold text-[#0F172A] leading-[1.06] tracking-[-0.035em] text-[clamp(34px,5.6vw,84px)]"
+          className="mx-auto max-w-[1180px] font-extrabold text-[#0F172A] leading-[1.08] tracking-[-0.035em] text-[clamp(28px,5.6vw,84px)]"
         >
           {/* Line 1 */}
           <motion.span style={{ x: xLine1 }} className="relative block will-change-transform">
@@ -80,8 +79,8 @@ export function AnimatedTransitionText() {
                   strokeLinecap="round"
                   initial={{ pathLength: 0 }}
                   whileInView={{ pathLength: 1 }}
-                  viewport={{ once: true, amount: 0.4 }}
-                  transition={{ duration: 1.1, ease: EASE_OUT, delay: 0.35 }}
+                  viewport={{ once: true, amount: 0.35 }}
+                  transition={{ duration: 1.1, ease: EASE_OUT, delay: 0.25 }}
                 />
               </svg>
 
@@ -91,9 +90,9 @@ export function AnimatedTransitionText() {
                 viewBox="0 0 100 100"
                 initial={{ opacity: 0, scale: 0 }}
                 whileInView={{ opacity: 1, scale: 1 }}
-                viewport={{ once: true, amount: 0.4 }}
-                transition={{ type: 'spring', stiffness: 220, damping: 12, delay: 0.65 }}
-                className="absolute -right-[0.5em] -top-[0.3em] size-[0.45em] text-[#3B82F6]"
+                viewport={{ once: true, amount: 0.35 }}
+                transition={{ type: 'spring', stiffness: 220, damping: 12, delay: 0.5 }}
+                className="hidden sm:block absolute -right-[0.5em] -top-[0.3em] size-[0.45em] text-[#3B82F6]"
               >
                 <path
                   fill="currentColor"

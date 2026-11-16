@@ -95,7 +95,7 @@ export function ContactPageClient() {
   return (
     <div className="page-enter" style={{ background: 'white' }}>
       {/* ── HERO ─────────────────────────────────────────────────────── */}
-      <section style={{ paddingTop: 64, background: C.navy, padding: '120px 40px 80px', position: 'relative', overflow: 'hidden' }}>
+      <section className="px-4 sm:px-8 pt-28 pb-16 sm:pt-32 sm:pb-20" style={{ background: C.navy, position: 'relative', overflow: 'hidden' }}>
         <div style={{ position: 'absolute', top: -100, right: -100, width: 500, height: 500, borderRadius: '50%', background: 'radial-gradient(circle,rgba(59,130,246,0.12) 0%,transparent 70%)', pointerEvents: 'none' }} />
         <div style={{ position: 'absolute', bottom: -60, left: -60, width: 300, height: 300, borderRadius: '50%', background: 'radial-gradient(circle,rgba(147,197,253,0.06) 0%,transparent 70%)', pointerEvents: 'none' }} />
         <div style={{ maxWidth: 1280, margin: '0 auto', position: 'relative', zIndex: 1 }}>
@@ -159,7 +159,7 @@ export function ContactPageClient() {
 
       {/* ── FORM SECTION ─────────────────────────────────────────────── */}
       <section style={{ background: C.offWhite, padding: '80px 0 100px', borderBottom: `1px solid ${C.gray}` }}>
-        <div style={{ maxWidth: 1280, margin: '0 auto', padding: '0 40px' }}>
+        <div className="max-w-7xl mx-auto px-4 sm:px-8">
           <div className="p41-form-layout" style={{ display: 'grid', gridTemplateColumns: '5fr 7fr', gap: 64 }}>
             {/* Left: context */}
             <div>
@@ -213,7 +213,7 @@ export function ContactPageClient() {
             </div>
 
             {/* Right: form */}
-            <div style={{ background: 'white', borderRadius: 16, padding: '40px', border: `1px solid ${C.gray}`, boxShadow: '0 4px 24px rgba(30,41,59,0.06)' }}>
+            <div className="p-6 sm:p-10 rounded-2xl bg-white" style={{ border: `1px solid ${C.gray}`, boxShadow: '0 4px 24px rgba(30,41,59,0.06)' }}>
               {submitted ? (
                 <div style={{ textAlign: 'center', padding: '40px 0' }}>
                   <div style={{ width: 56, height: 56, borderRadius: '50%', background: '#DCFCE7', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px' }}>
@@ -231,7 +231,7 @@ export function ContactPageClient() {
                     <div style={{ fontSize: 13, color: C.textMuted }}>Fields marked with * are required.</div>
                   </div>
 
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                       <label style={{ fontSize: 12, fontWeight: 700, color: '#475569', display: 'block', marginBottom: 6, letterSpacing: '0.06em' }}>FULL NAME *</label>
                       <input
@@ -271,7 +271,7 @@ export function ContactPageClient() {
                     />
                   </div>
 
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                       <label style={{ fontSize: 12, fontWeight: 700, color: '#475569', display: 'block', marginBottom: 6, letterSpacing: '0.06em' }}>PRIMARY REQUIREMENT *</label>
                       <select
@@ -356,11 +356,11 @@ export function ContactPageClient() {
             </div>
           </div>
         </div>
-        <style>{`.p41-form-layout{display:grid;grid-template-columns:5fr 7fr;gap:64px;} @media(max-width:900px){.p41-form-layout{grid-template-columns:1fr!important;}}`}</style>
+        <style>{`.p41-form-layout{display:grid;grid-template-columns:5fr 7fr;gap:64px;} @media(max-width:900px){.p41-form-layout{grid-template-columns:1fr!important;gap:36px!important;}}`}</style>
       </section>
 
       {/* ── BOTTOM COMMITMENTS ───────────────────────────────────────── */}
-      <section style={{ background: 'white', padding: '64px 40px', borderTop: `1px solid ${C.gray}` }}>
+      <section className="bg-white py-14 sm:py-16 px-4 sm:px-8" style={{ borderTop: `1px solid ${C.gray}` }}>
         <div style={{ maxWidth: 1280, margin: '0 auto' }}>
           <div className="p41-contact-bottom" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 32 }}>
             {[

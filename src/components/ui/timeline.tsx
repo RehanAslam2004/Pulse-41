@@ -1,17 +1,13 @@
 "use client";
 
+import { type CSSProperties, useEffect, useRef, useState } from "react";
 import {
-  type CSSProperties,
-  useEffect,
-  useRef,
-  useSyncExternalStore,
-} from "react";
-import gsap from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
-
-if (typeof window !== "undefined") {
-  gsap.registerPlugin(ScrollTrigger);
-}
+  motion,
+  useScroll,
+  useSpring,
+  useTransform,
+  type MotionValue,
+} from "framer-motion";
 
 export type JourneyItem = {
   id: string;
@@ -40,73 +36,37 @@ export type TimelineProps = {
   bottomData?: JourneyItem[];
 };
 
-const REDUCED_MOTION_QUERY = "(prefers-reduced-motion: reduce)";
-
-function subscribeToReducedMotion(callback: () => void) {
-  if (typeof window === "undefined") return () => {};
-  const mediaQueryList = window.matchMedia(REDUCED_MOTION_QUERY);
-  mediaQueryList.addEventListener("change", callback);
-  return () => mediaQueryList.removeEventListener("change", callback);
-}
-
-function getReducedMotionSnapshot() {
-  if (typeof window === "undefined") return false;
-  return window.matchMedia?.(REDUCED_MOTION_QUERY)?.matches ?? false;
-}
-
-function getServerReducedMotionSnapshot() {
-  return false;
-}
-
-function usePrefersReducedMotion() {
-  return useSyncExternalStore(
-    subscribeToReducedMotion,
-    getReducedMotionSnapshot,
-    getServerReducedMotionSnapshot
-  );
-}
-
-/* ── Pulse41 9-Step Delivery Methodology (Alternating 5 Top & 4 Bottom) ── */
+/* ── Pulse41 9-Step Delivery Methodology ── */
 export const defaultTopJourneyData: JourneyItem[] = [
   {
     id: "step-01",
     stepNumber: "01",
-    stepTitle: "DISCOVER",
-    category: "PHASE 01",
+    stepTitle: "Discover",
     content: "Objectives, constraints, stakeholders, systems and business context.",
-    focus: "Stakeholder interviews, legacy audit & scope",
   },
   {
     id: "step-03",
     stepNumber: "03",
-    stepTitle: "ARCHITECT",
-    category: "PHASE 03",
+    stepTitle: "Architect",
     content: "Solution, data, integration, security and hosting architecture.",
-    focus: "Resilient infra, schema design & API mapping",
   },
   {
     id: "step-05",
     stepNumber: "05",
-    stepTitle: "BUILD & CONFIGURE",
-    category: "PHASE 05",
+    stepTitle: "Build & Configure",
     content: "Software, integrations, automations, content and data pipeline.",
-    focus: "Disciplined craft, unit tests & CI/CD pipeline",
   },
   {
     id: "step-07",
     stepNumber: "07",
-    stepTitle: "ACCEPT & DEPLOY",
-    category: "PHASE 07",
+    stepTitle: "Accept & Deploy",
     content: "Client acceptance, release management, production launch and rollback readiness.",
-    focus: "Formal sign-off, zero downtime & rollback check",
   },
   {
     id: "step-09",
     stepNumber: "09",
-    stepTitle: "SUPPORT & IMPROVE",
-    category: "PHASE 09",
+    stepTitle: "Support & Improve",
     content: "Hypercare, ongoing support, telemetry monitoring and optimization cycles.",
-    focus: "SLA maintenance, uptime telemetry & iteration",
   },
 ];
 
@@ -114,420 +74,354 @@ export const defaultBottomJourneyData: JourneyItem[] = [
   {
     id: "step-02",
     stepNumber: "02",
-    stepTitle: "DEFINE",
-    category: "PHASE 02",
+    stepTitle: "Define",
     content: "Scope, user journeys, requirements, acceptance criteria and metrics.",
-    focus: "Functional specs, KPIs & boundary setting",
   },
   {
     id: "step-04",
     stepNumber: "04",
-    stepTitle: "PLAN",
-    category: "PHASE 04",
+    stepTitle: "Plan",
     content: "Roadmap, sprints, milestones, risk register and resource allocation.",
-    focus: "Sprint cadence, governance & gate reviews",
   },
   {
     id: "step-06",
     stepNumber: "06",
-    stepTitle: "VERIFY",
-    category: "PHASE 06",
+    stepTitle: "Verify",
     content: "Quality assurance, regression, performance, security review and UAT support.",
-    focus: "End-to-end tests, audits & vulnerability scans",
   },
   {
     id: "step-08",
     stepNumber: "08",
-    stepTitle: "ENABLE",
-    category: "PHASE 08",
+    stepTitle: "Enable",
     content: "Knowledge transfer, documentation, team training and handover checklist.",
-    focus: "Admin runbooks, code transfer & readiness",
   },
 ];
+
+function DesktopStepNode({
+  item,
+  index,
+  total,
+  progress,
+}: {
+  item: JourneyItem;
+  index: number;
+  total: number;
+  progress: MotionValue<number>;
+}) {
+  const isTop = index % 2 === 0;
+  // Sync step activation physically with the traveling blue orb along the rail
+  const threshold = total > 1 ? 0.13 + (index / (total - 1)) * 0.73 : 0.13;
+  const start = Math.max(0, threshold - 0.05);
+  const end = Math.min(1, threshold + 0.03);
+
+  const stemScaleY = useTransform(progress, [start, end], [0, 1]);
+  const nodeScale = useTransform(progress, [start, start + 0.03], [0.45, 1]);
+  const nodeOpacity = useTransform(progress, [start, start + 0.03], [0.25, 1]);
+  const textOpacity = useTransform(progress, [start, end], [0.35, 1]);
+  const titleColor = useTransform(progress, [start, end], ["#64748B", "#2563EB"]);
+  const textY = useTransform(progress, [start, end], [isTop ? -6 : 6, 0]);
+
+  return (
+    <div className="relative h-full w-[250px] lg:w-[270px] shrink-0 select-none">
+      {/* Junction node directly on the horizontal light rail (y = 50%) */}
+      <motion.div
+        aria-hidden="true"
+        style={{ scale: nodeScale, opacity: nodeOpacity }}
+        className="absolute left-6 top-1/2 -translate-x-1/2 -translate-y-1/2 z-20 flex size-3.5 items-center justify-center rounded-full bg-[#2563EB] shadow-[0_0_16px_rgba(37,99,235,0.65)] ring-4 ring-white"
+      />
+
+      {/* Vertical light ray stem from rail to step content */}
+      {isTop ? (
+        <motion.div
+          aria-hidden="true"
+          style={{ scaleY: stemScaleY, originY: 1 }}
+          className="absolute left-[23px] bottom-1/2 h-[42px] w-[2px] rounded-full bg-gradient-to-t from-[#2563EB] via-[#3B82F6] to-[#93C5FD] shadow-[0_0_12px_rgba(59,130,246,0.5)] z-10"
+        />
+      ) : (
+        <motion.div
+          aria-hidden="true"
+          style={{ scaleY: stemScaleY, originY: 0 }}
+          className="absolute left-[23px] top-1/2 h-[42px] w-[2px] rounded-full bg-gradient-to-b from-[#2563EB] via-[#3B82F6] to-[#93C5FD] shadow-[0_0_12px_rgba(59,130,246,0.5)] z-10"
+        />
+      )}
+
+      {/* Content block placed either cleanly above or cleanly below the rail */}
+      {isTop ? (
+        <motion.div
+          style={{ opacity: textOpacity, y: textY }}
+          className="absolute left-2 right-4 bottom-[calc(50%+52px)]"
+        >
+          <motion.h4
+            style={{ color: titleColor }}
+            className="text-2xl lg:text-[26px] font-extrabold tracking-tight leading-tight mb-2"
+          >
+            {item.stepTitle}
+          </motion.h4>
+          <p className="text-sm leading-relaxed text-slate-600 m-0">
+            {item.content}
+          </p>
+        </motion.div>
+      ) : (
+        <motion.div
+          style={{ opacity: textOpacity, y: textY }}
+          className="absolute left-2 right-4 top-[calc(50%+52px)]"
+        >
+          <motion.h4
+            style={{ color: titleColor }}
+            className="text-2xl lg:text-[26px] font-extrabold tracking-tight leading-tight mb-2"
+          >
+            {item.stepTitle}
+          </motion.h4>
+          <p className="text-sm leading-relaxed text-slate-600 m-0">
+            {item.content}
+          </p>
+        </motion.div>
+      )}
+    </div>
+  );
+}
 
 export default function Timeline({
   title = "FROM DISCOVERY TO IMPACT.",
   subtitle = "OUR PROCESS",
-  periodLabel = "01 — 09 / DELIVERY LIFECYCLE",
-  textColor = "#FFFFFF",
-  mutedTextColor = "#CBD5E1",
-  activeColor = "#2563EB",
-  backgroundColor = "#0A0F1D",
+  periodLabel = "Nine-stage governed delivery lifecycle",
   imageUrl = "/images/process/isometric-cubes.jpg",
   imageAlt = "Pulse41 Disciplined Engineering Architecture",
   topData = defaultTopJourneyData,
   bottomData = defaultBottomJourneyData,
 }: TimelineProps) {
-  const sectionRef = useRef<HTMLElement>(null);
-  const wholeSliderRef = useRef<HTMLDivElement>(null);
-  const reducedMotion = usePrefersReducedMotion();
+  const desktopSectionRef = useRef<HTMLDivElement>(null);
+  const viewportRef = useRef<HTMLDivElement>(null);
+  const trackRef = useRef<HTMLDivElement>(null);
+  const mobileListRef = useRef<HTMLDivElement>(null);
 
-  const sectionStyle: CSSProperties = {
-    color: textColor,
-    backgroundColor,
-  };
-  const activeStyle: CSSProperties = {
-    backgroundColor: activeColor,
-  };
+  const [maxTranslate, setMaxTranslate] = useState(1400);
 
   const allJourneyItems: JourneyItem[] = [...topData, ...bottomData].sort((a, b) =>
     a.stepNumber.localeCompare(b.stepNumber)
   );
 
+  // Measure horizontal track overflow dynamically so any screen width finishes cleanly
   useEffect(() => {
-    const section = sectionRef.current;
-    const slider = wholeSliderRef.current;
-    if (!section || !slider) return;
-
-    const ctx = gsap.context(() => {
-      const items = allJourneyItems;
-
-      if (reducedMotion) {
-        items.forEach((item) => {
-          gsap.set(`.jl-${item.id}`, { scaleY: 1 });
-          gsap.set(`.jd-${item.id}`, { scale: 1 });
-          gsap.set(`.title-${item.id}`, { opacity: 1, y: 0 });
-          gsap.set(`.description-${item.id}`, { opacity: 1, y: 0 });
-          gsap.set(`.badge-${item.id}`, { opacity: 1 });
-        });
-        gsap.set(".journey-line", { width: "100%" });
-        return;
-      }
-
-      // Initial state: hide lines and dots, soften unactivated phase text
-      items.forEach((item) => {
-        const isTop = topData.some((topItem) => topItem.id === item.id);
-        gsap.set(`.jl-${item.id}`, {
-          scaleY: 0,
-          transformOrigin: isTop ? "bottom center" : "top center",
-        });
-        gsap.set(`.jd-${item.id}`, { scale: 0 });
-        gsap.set(`.title-${item.id}`, { opacity: 0.35, y: 8 });
-        gsap.set(`.description-${item.id}`, { opacity: 0.35, y: 5 });
-        gsap.set(`.badge-${item.id}`, { opacity: 0.45 });
-      });
-
-      gsap.set(".journey-line", { width: "0%" });
-
-      // Calculate translation dynamically so all phases scroll into view on any screen
-      const getScrollAmount = () => {
-        const sliderWidth = slider.scrollWidth;
-        const viewportWidth = window.innerWidth;
-        const offset = viewportWidth < 600 ? 40 : 80;
-        return -(sliderWidth - viewportWidth + offset);
-      };
-
-      // ONE unified master timeline tied to the sticky section scroll
-      const masterTl = gsap.timeline({
-        scrollTrigger: {
-          trigger: section,
-          start: "top top",
-          end: "bottom bottom",
-          scrub: 0.8,
-          invalidateOnRefresh: true,
-        },
-        defaults: { ease: "none" },
-      });
-
-      // 1. Move the horizontal slider across the screen
-      masterTl.to(
-        slider,
-        {
-          x: getScrollAmount,
-          ease: "none",
-          duration: 10,
-        },
-        0
+    const updateBounds = () => {
+      if (!viewportRef.current || !trackRef.current) return;
+      const overflow = Math.max(
+        0,
+        trackRef.current.scrollWidth - viewportRef.current.clientWidth + 48
       );
+      setMaxTranslate(overflow);
+    };
 
-      // 2. Extend the glowing central wire seamlessly along the track
-      masterTl.to(
-        ".journey-line",
-        {
-          width: "100%",
-          ease: "none",
-          duration: 10,
-        },
-        0
-      );
-
-      // 3. Sequentially activate each step as the pulse line reaches it
-      // Timeline runs from 0 to 10. Steps 1 through 9 are evenly mapped:
-      const stepTimings = [
-        { start: 0.25, dur: 0.65 }, // Step 01: Discover
-        { start: 1.15, dur: 0.65 }, // Step 02: Define
-        { start: 2.15, dur: 0.65 }, // Step 03: Architect
-        { start: 3.15, dur: 0.65 }, // Step 04: Plan
-        { start: 4.15, dur: 0.65 }, // Step 05: Build & Configure
-        { start: 5.15, dur: 0.65 }, // Step 06: Verify
-        { start: 6.15, dur: 0.65 }, // Step 07: Accept & Deploy
-        { start: 7.15, dur: 0.65 }, // Step 08: Enable
-        { start: 8.15, dur: 0.70 }, // Step 09: Support & Improve
-      ];
-
-      items.forEach((item, idx) => {
-        if (idx >= stepTimings.length) return;
-        const { start, dur } = stepTimings[idx];
-
-        // Vertical stem line grows from central rail
-        masterTl.to(
-          `.jl-${item.id}`,
-          {
-            scaleY: 1,
-            duration: dur * 0.7,
-            ease: "power1.out",
-          },
-          start
-        );
-
-        // Connection dot blooms with glowing scale
-        masterTl.to(
-          `.jd-${item.id}`,
-          {
-            scale: 1,
-            duration: dur * 0.5,
-            ease: "back.out(2)",
-          },
-          start + dur * 0.3
-        );
-
-        // Phase titles and copy illuminate to 100% white
-        masterTl.to(
-          `.title-${item.id}`,
-          {
-            opacity: 1,
-            y: 0,
-            duration: dur * 0.6,
-            ease: "power2.out",
-          },
-          start + dur * 0.2
-        );
-
-        masterTl.to(
-          `.description-${item.id}`,
-          {
-            opacity: 1,
-            y: 0,
-            duration: dur * 0.6,
-            ease: "power2.out",
-          },
-          start + dur * 0.25
-        );
-
-        masterTl.to(
-          `.badge-${item.id}`,
-          {
-            opacity: 1,
-            duration: dur * 0.4,
-            ease: "power1.out",
-          },
-          start + dur * 0.2
-        );
-      });
-    }, sectionRef);
-
-    // Refresh ScrollTrigger when images and fonts finish loading
-    const handleLoad = () => ScrollTrigger.refresh();
-    window.addEventListener("load", handleLoad);
-    const refreshTimer = setTimeout(() => ScrollTrigger.refresh(), 400);
+    updateBounds();
+    const ro = new ResizeObserver(updateBounds);
+    if (viewportRef.current) ro.observe(viewportRef.current);
+    if (trackRef.current) ro.observe(trackRef.current);
+    window.addEventListener("resize", updateBounds);
 
     return () => {
-      window.removeEventListener("load", handleLoad);
-      clearTimeout(refreshTimer);
-      ctx.revert();
+      ro.disconnect();
+      window.removeEventListener("resize", updateBounds);
     };
-  }, [reducedMotion]);
+  }, [allJourneyItems.length]);
+
+  // Desktop sticky scroll progress (immune to CSS transform ancestors)
+  const { scrollYProgress: desktopProgressRaw } = useScroll({
+    target: desktopSectionRef,
+    offset: ["start start", "end end"],
+  });
+
+  const desktopProgress = useSpring(desktopProgressRaw, {
+    stiffness: 110,
+    damping: 26,
+    restDelta: 0.001,
+  });
+
+  const trackX = useTransform(desktopProgress, [0, 1], [0, -maxTranslate]);
+  const desktopRayScaleX = useTransform(desktopProgress, [0, 0.94], [0, 1]);
+  const desktopRayOrbLeft = useTransform(desktopProgress, [0, 0.94], ["0%", "100%"]);
+
+  // Mobile vertical scroll progress for downward blue light ray
+  const { scrollYProgress: mobileProgressRaw } = useScroll({
+    target: mobileListRef,
+    offset: ["start 80%", "end 70%"],
+  });
+  const mobileRayScaleY = useSpring(mobileProgressRaw, {
+    stiffness: 120,
+    damping: 28,
+  });
+
+  const sectionStyle: CSSProperties = {
+    backgroundColor: "#FFFFFF",
+    color: "#0F172A",
+    fontFamily: "var(--font-inter, 'Inter', sans-serif)",
+  };
 
   return (
     <section
-      ref={sectionRef}
       id="our-process"
-      className="h-[280vw] max-[600px]:h-[480vh] w-full relative selection:bg-blue-500 selection:text-white"
+      aria-labelledby="our-process-heading"
+      className="relative w-full border-y border-slate-200/80"
       style={sectionStyle}
     >
-      {/* Pinned Viewport Container (Sticky top with navbar offset) */}
-      <div className="h-screen w-full sticky top-0 pt-[72px] overflow-hidden flex items-center">
-        {/* Horizontal Moving Slider Track */}
+      {/* ── DESKTOP PINNED HORIZONTAL TIMELINE (md+) ───────────────────── */}
+      <div ref={desktopSectionRef} className="hidden md:block relative h-[320vh] w-full">
         <div
-          ref={wholeSliderRef}
-          className="mr-[2vw] flex h-[36vw] w-[320vw] items-center gap-[4vw] px-[4vw] max-[600px]:h-[82vh] max-[600px]:w-[940vw] max-[600px]:px-[6vw] will-change-transform"
+          ref={viewportRef}
+          className="sticky top-0 h-screen w-full pt-[72px] overflow-hidden flex items-center bg-white"
         >
-          {/* Left Anchor Hero Card with 3D Isometric Blue Glass Blocks */}
-          <div className="relative h-full w-[28vw] shrink-0 overflow-hidden rounded-[1.2vw] border border-blue-500/20 bg-slate-900/60 shadow-2xl max-[600px]:h-[65vw] max-[600px]:w-[80vw] max-[600px]:rounded-[4vw] flex flex-col justify-end p-[1.8vw] pb-[2.2vw] max-[600px]:p-[4vw] max-[600px]:pb-[5vw] group select-none">
-            <img
-              src={imageUrl}
-              alt={imageAlt}
-              draggable={false}
-              className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
-              onError={(e) => {
-                (e.currentTarget as HTMLImageElement).src =
-                  "https://images.unsplash.com/photo-1518770660439-4636190af475?w=1200&auto=format&fit=crop&q=80";
-              }}
-            />
-            {/* Cinematic Gradient Overlays */}
-            <div className="absolute inset-0 bg-gradient-to-t from-[#0A0F1D] via-[#0A0F1D]/40 to-transparent" />
-            <div className="absolute inset-0 bg-radial-at-c from-transparent via-[#0A0F1D]/30 to-[#0A0F1D]" />
+          {/* Soft ambient blue glow */}
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute left-1/3 top-1/2 -translate-y-1/2 h-[360px] w-[720px] rounded-full bg-blue-500/[0.04] blur-[120px]"
+          />
 
-            <div className="relative z-10 space-y-[0.4vw] max-[600px]:space-y-1">
-              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[0.7vw] max-[600px]:text-[2.4vw] font-mono font-semibold uppercase tracking-wider bg-blue-500/20 border border-blue-400/30 text-blue-300">
-                <span className="size-1.5 rounded-full bg-blue-400 animate-pulse" />
-                Continuous Rigor
-              </span>
-              <h3 className="text-[1.3vw] max-[600px]:text-[4.2vw] font-bold text-white tracking-tight leading-snug">
-                P41 Delivery Discipline
-              </h3>
-              <p className="text-[0.8vw] max-[600px]:text-[2.8vw] text-slate-300 leading-relaxed">
-                Standardized governance, automated testing, zero-drift pipelines, and verified production rollouts.
-              </p>
-            </div>
-          </div>
-
-          {/* Interactive Timeline Rail & Alternating Cards */}
-          <div className="relative h-full w-full">
-            {/* Central Horizontal Glowing Line Track */}
-            <div className="w-full absolute left-0 top-[49%] -translate-y-1/2 flex items-center h-fit z-10 pointer-events-none">
-              {/* Subtle background rail path */}
-              <div className="absolute inset-x-0 h-[2px] bg-slate-800/80 rounded-full" />
-
-              {/* Start anchor node */}
-              <div
-                className="h-[.9vw] max-[600px]:h-[2.4vw] max-[600px]:w-[2.4vw] w-[.9vw] rounded-full shadow-[0_0_16px_#3b82f6] shrink-0 relative z-10"
-                style={activeStyle}
+          <motion.div
+            ref={trackRef}
+            style={{ x: trackX }}
+            className="relative flex items-center gap-10 lg:gap-14 pl-8 lg:pl-14 pr-20 h-[470px] will-change-transform"
+          >
+            {/* Left Anchor Visual Card (Clean white-theme architectural framing, zero pill badges) */}
+            <div className="relative h-[430px] w-[310px] lg:w-[350px] shrink-0 overflow-hidden rounded-[24px] border border-slate-200 bg-slate-900 shadow-[0_24px_60px_-15px_rgba(15,23,42,0.16)] flex flex-col justify-end p-6 group select-none">
+              <img
+                src={imageUrl}
+                alt={imageAlt}
+                draggable={false}
+                className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
+                onError={(e) => {
+                  (e.currentTarget as HTMLImageElement).src =
+                    "https://images.unsplash.com/photo-1518770660439-4636190af475?w=1200&auto=format&fit=crop&q=80";
+                }}
               />
-              {/* Expanding glowing progress wire */}
-              <div
-                className="h-[2px] w-[0%] rounded-full journey-line shadow-[0_0_12px_#3b82f6] relative z-10 will-change-[width]"
-                style={activeStyle}
-              />
-              {/* Leading traveling node */}
-              <div
-                className="h-[.9vw] max-[600px]:h-[2.4vw] max-[600px]:w-[2.4vw] w-[.9vw] rounded-full shadow-[0_0_20px_#60a5fa] shrink-0 relative z-10"
-                style={activeStyle}
-              />
+              <div className="absolute inset-0 bg-gradient-to-t from-[#0F172A]/95 via-[#0F172A]/35 to-transparent" />
+              <div className="relative z-10">
+                <h3 className="text-xl font-bold text-white tracking-tight mb-1.5">
+                  P41 Delivery Discipline
+                </h3>
+                <p className="text-xs sm:text-sm text-slate-200/90 leading-relaxed m-0">
+                  Structured governance, automated testing, and verified production rollouts at every gate.
+                </p>
+              </div>
             </div>
 
-            {/* TOP BRANCH: Header + Top Steps (01, 03, 05, 07, 09) */}
-            <div className="flex h-1/2 w-full items-end justify-start gap-[1vw] pb-[2.5vw] max-[600px]:pb-[6vw]">
-              {/* Header Anchor */}
-              <div className="h-full w-[24vw] shrink-0 flex flex-col justify-end pr-[2vw] max-[600px]:w-[70vw] max-[600px]:pr-[4vw]">
-                <div className="text-[0.75vw] max-[600px]:text-[2.8vw] font-mono uppercase tracking-[0.25em] text-blue-400 font-semibold mb-[0.6vw]">
-                  {subtitle}
+            {/* Header + Interactive Steps sharing one continuous y=50% Blue Light Ray */}
+            <div className="relative flex items-center h-full pr-12">
+              {/* Base subtle grey rail extending from Header anchor node through Step 9 */}
+              <div
+                aria-hidden="true"
+                className="pointer-events-none absolute left-0 right-12 top-1/2 -translate-y-1/2 h-[2px] bg-slate-200 rounded-full"
+              />
+
+              {/* Start anchor dot under heading */}
+              <div
+                aria-hidden="true"
+                className="pointer-events-none absolute left-0 top-1/2 -translate-y-1/2 size-3 rounded-full bg-[#2563EB] shadow-[0_0_16px_rgba(37,99,235,0.65)] z-20"
+              />
+
+              {/* Animated Blue Light Ray */}
+              <div
+                aria-hidden="true"
+                className="pointer-events-none absolute left-0 right-12 top-1/2 -translate-y-1/2 h-[3px] z-10"
+              >
+                <motion.div
+                  style={{ scaleX: desktopRayScaleX, originX: 0 }}
+                  className="h-full w-full rounded-full bg-gradient-to-r from-[#3B82F6] via-[#2563EB] to-[#60A5FA] shadow-[0_0_18px_rgba(37,99,235,0.6)]"
+                />
+                {/* Traveling blue ray leading head */}
+                <motion.div
+                  style={{ left: desktopRayOrbLeft }}
+                  className="absolute top-1/2 -translate-x-1/2 -translate-y-1/2 size-4 rounded-full bg-[#60A5FA]/45 flex items-center justify-center"
+                >
+                  <span className="size-2 rounded-full bg-[#2563EB] shadow-[0_0_16px_#2563EB]" />
+                </motion.div>
+              </div>
+
+              {/* Header Block Anchoring the Left of the Continuous Rail */}
+              <div className="relative h-full w-[300px] lg:w-[340px] shrink-0 mr-8 select-none">
+                <div className="absolute left-0 right-4 bottom-[calc(50%+26px)]">
+                  <div className="text-xs font-bold uppercase tracking-[0.2em] text-[#2563EB] mb-3">
+                    {subtitle}
+                  </div>
+                  <h2
+                    id="our-process-heading"
+                    className="text-3xl lg:text-4xl font-extrabold text-[#0F172A] leading-[1.06] tracking-tight m-0"
+                  >
+                    {title}
+                  </h2>
                 </div>
-                <h2 className="text-[2.5vw] max-[600px]:text-[7vw] font-extrabold text-white leading-[0.95] tracking-tight">
-                  {title}
-                </h2>
-              </div>
 
-              {/* Top Steps Row */}
-              <div className="flex h-full gap-x-[12vw] max-[600px]:gap-x-[32vw]">
-                {topData.map((item) => (
-                  <div
-                    key={`top-${item.id}`}
-                    className="relative h-full w-[26vw] px-[1.5vw] max-[600px]:w-[68vw] max-[600px]:px-[4vw] flex flex-col justify-between"
-                  >
-                    {/* Vertical Stem Line & Dot connecting to central wire */}
-                    <div className="w-full absolute left-0 bottom-[-2.5vw] max-[600px]:bottom-[-6vw] top-0 h-[calc(100%+2.5vw)] max-[600px]:h-[calc(100%+6vw)] pointer-events-none">
-                      <div
-                        className={`size-[1vw] max-[600px]:size-[2.6vw] -translate-x-1/2 relative aspect-square rounded-full shadow-[0_0_14px_#3b82f6] jd-${item.id} will-change-transform`}
-                        style={{ ...activeStyle, transform: "scale(0)" }}
-                      />
-                      <div
-                        className={`h-[94%] w-[2px] origin-bottom rounded-full shadow-[0_0_10px_#3b82f6] jl-${item.id} will-change-transform`}
-                        style={{ ...activeStyle, transform: "scaleY(0)" }}
-                      />
-                    </div>
-
-                    {/* Step Card Content */}
-                    <div className="space-y-[0.8vw] max-[600px]:space-y-[2vw]">
-                      <div className="flex items-center gap-[0.8vw]">
-                        <span
-                          className={`badge-${item.id} font-mono text-[0.9vw] max-[600px]:text-[3.2vw] font-extrabold text-blue-400 bg-blue-500/10 border border-blue-500/30 px-2 py-0.5 rounded transition-opacity duration-300`}
-                        >
-                          {item.stepNumber}
-                        </span>
-                        <span className="text-[0.7vw] max-[600px]:text-[2.5vw] font-mono tracking-widest text-slate-400 uppercase">
-                          {item.category || `PHASE ${item.stepNumber}`}
-                        </span>
-                      </div>
-
-                      <h4
-                        className={`title-${item.id} text-[2.2vw] font-extrabold text-white leading-tight tracking-tight max-[600px]:text-[5.8vw] transition-colors duration-300 will-change-transform`}
-                      >
-                        {item.stepTitle}
-                      </h4>
-
-                      <p
-                        className={`description-${item.id} text-[1.1vw] leading-relaxed text-slate-200 font-normal max-[600px]:text-[4vw] max-w-[26vw] max-[600px]:max-w-[70vw] transition-colors duration-300 will-change-transform`}
-                      >
-                        {item.content}
-                      </p>
-                    </div>
+                <div className="absolute left-0 right-4 top-[calc(50%+26px)]">
+                  <div className="text-sm font-bold text-[#2563EB] mb-1.5">
+                    {periodLabel}
                   </div>
-                ))}
+                  <p className="text-sm text-slate-600 leading-relaxed m-0">
+                    Every stage is gated by clear acceptance criteria, security checks, and client sign-off.
+                  </p>
+                </div>
               </div>
+
+              {allJourneyItems.map((item, idx) => (
+                <DesktopStepNode
+                  key={item.id}
+                  item={item}
+                  index={idx}
+                  total={allJourneyItems.length}
+                  progress={desktopProgress}
+                />
+              ))}
             </div>
+          </motion.div>
+        </div>
+      </div>
 
-            {/* BOTTOM BRANCH: Period Subtitle + Bottom Steps (02, 04, 06, 08) */}
-            <div className="flex h-1/2 w-full items-start justify-start gap-[1vw] pt-[2.5vw] max-[600px]:pt-[6vw]">
-              {/* Period Label Anchor */}
-              <div className="h-full w-[24vw] shrink-0 flex flex-col justify-start pr-[2vw] max-[600px]:w-[70vw] max-[600px]:pr-[4vw]">
-                <p className="text-[1.2vw] font-mono tracking-wider font-semibold uppercase leading-none max-[600px]:text-[3.6vw] text-blue-400">
-                  {periodLabel}
-                </p>
-                <p className="mt-[1vw] text-[0.95vw] max-[600px]:text-[3vw] text-slate-300 leading-relaxed">
-                  Every phase is gated by acceptance criteria, security reviews, and verification milestones.
-                </p>
-              </div>
-
-              {/* Bottom Steps Row (Indented for alternating zig-zag rhythm) */}
-              <div className="flex h-full gap-x-[14vw] ml-[5vw] max-[600px]:gap-x-[32vw] max-[600px]:ml-[6vw]">
-                {bottomData.map((item) => (
-                  <div
-                    key={`bottom-${item.id}`}
-                    className="relative h-full w-[24vw] px-[1.5vw] max-[600px]:w-[68vw] max-[600px]:px-[4vw] flex flex-col justify-start"
-                  >
-                    {/* Vertical Stem Line & Dot connecting to central wire */}
-                    <div className="w-full absolute left-0 top-[-2.5vw] max-[600px]:top-[-6vw] bottom-0 h-[calc(100%+2.5vw)] max-[600px]:h-[calc(100%+6vw)] pointer-events-none">
-                      <div
-                        className={`h-[94%] origin-top w-[2px] rounded-full shadow-[0_0_10px_#3b82f6] jl-${item.id} will-change-transform`}
-                        style={{ ...activeStyle, transform: "scaleY(0)" }}
-                      />
-                      <div
-                        className={`size-[1vw] max-[600px]:size-[2.6vw] -translate-x-1/2 relative aspect-square rounded-full shadow-[0_0_14px_#3b82f6] jd-${item.id} will-change-transform`}
-                        style={{ ...activeStyle, transform: "scale(0)" }}
-                      />
-                    </div>
-
-                    {/* Step Card Content */}
-                    <div className="space-y-[0.8vw] max-[600px]:space-y-[2vw]">
-                      <div className="flex items-center gap-[0.8vw]">
-                        <span
-                          className={`badge-${item.id} font-mono text-[0.9vw] max-[600px]:text-[3.2vw] font-extrabold text-blue-400 bg-blue-500/10 border border-blue-500/30 px-2 py-0.5 rounded transition-opacity duration-300`}
-                        >
-                          {item.stepNumber}
-                        </span>
-                        <span className="text-[0.7vw] max-[600px]:text-[2.5vw] font-mono tracking-widest text-slate-300 uppercase">
-                          {item.category || `PHASE ${item.stepNumber}`}
-                        </span>
-                      </div>
-
-                      <h4
-                        className={`title-${item.id} text-[2.2vw] font-extrabold text-white leading-tight tracking-tight max-[600px]:text-[5.8vw] transition-colors duration-300 will-change-transform`}
-                      >
-                        {item.stepTitle}
-                      </h4>
-
-                      <p
-                        className={`description-${item.id} text-[1.1vw] leading-relaxed text-slate-200 font-normal max-[600px]:text-[4vw] max-w-[26vw] max-[600px]:max-w-[70vw] transition-colors duration-300 will-change-transform`}
-                      >
-                        {item.content}
-                      </p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
+      {/* ── MOBILE VERTICAL BLUE LIGHT-RAY TIMELINE (< md) ────────────── */}
+      <div className="relative md:hidden px-4 py-14">
+        <div className="mb-8">
+          <div className="text-xs font-bold uppercase tracking-[0.18em] text-[#2563EB] mb-2">
+            {subtitle}
           </div>
+          <h2 className="text-3xl font-extrabold text-[#0F172A] leading-tight tracking-tight mb-3">
+            {title}
+          </h2>
+          <p className="text-sm text-slate-600 leading-relaxed m-0">
+            {periodLabel} — gated by clear acceptance criteria, security checks, and sign-off.
+          </p>
+        </div>
+
+        <div ref={mobileListRef} className="relative pl-7 space-y-7">
+          {/* Base rail */}
+          <div
+            aria-hidden="true"
+            className="absolute left-[7px] top-2 bottom-2 w-[2px] bg-slate-200 rounded-full"
+          />
+
+          {/* Vertical glowing blue light ray */}
+          <motion.div
+            aria-hidden="true"
+            style={{ scaleY: mobileRayScaleY, originY: 0 }}
+            className="absolute left-[7px] top-2 bottom-2 w-[2px] bg-gradient-to-b from-[#3B82F6] via-[#2563EB] to-[#60A5FA] shadow-[0_0_14px_rgba(37,99,235,0.55)] rounded-full"
+          />
+
+          {allJourneyItems.map((item) => (
+            <motion.div
+              key={item.id}
+              initial={{ opacity: 0.35, x: 10 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true, amount: 0.45 }}
+              transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
+              className="relative"
+            >
+              <span
+                aria-hidden="true"
+                className="absolute -left-[25px] top-1.5 size-3 rounded-full bg-[#2563EB] ring-4 ring-white shadow-[0_0_12px_rgba(37,99,235,0.5)]"
+              />
+              <h3 className="text-lg font-extrabold text-[#2563EB] tracking-tight mb-1">
+                {item.stepTitle}
+              </h3>
+              <p className="text-sm text-slate-600 leading-relaxed m-0">
+                {item.content}
+              </p>
+            </motion.div>
+          ))}
         </div>
       </div>
     </section>

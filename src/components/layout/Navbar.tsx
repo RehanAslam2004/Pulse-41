@@ -57,6 +57,16 @@ export function Navbar() {
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [])
 
+  // Lock background scroll while mobile drawer is open
+  useEffect(() => {
+    if (!mobileMenuOpen) return
+    const prev = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    return () => {
+      document.body.style.overflow = prev
+    }
+  }, [mobileMenuOpen])
+
   // Close on click outside
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -95,6 +105,7 @@ export function Navbar() {
     <>
       <header
         ref={navRef}
+        className="p41-header-bar"
         onMouseLeave={handleMouseLeave}
         style={{
           position: 'fixed',
@@ -102,7 +113,6 @@ export function Navbar() {
           left: 0,
           right: 0,
           zIndex: 200,
-          height: 72,
           background: scrolled ? 'rgba(255, 255, 255, 0.98)' : '#FFFFFF',
           backdropFilter: 'blur(20px)',
           WebkitBackdropFilter: 'blur(20px)',
@@ -112,22 +122,22 @@ export function Navbar() {
         }}
       >
         <div
+          className="p41-header-inner"
           style={{
             maxWidth: 1320,
             margin: '0 auto',
-            padding: '0 32px',
             height: '100%',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
-            gap: 24,
           }}
         >
           {/* ── 1. LOGO & BRAND ────────────────────────────────────────── */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 36, flexShrink: 0 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 36, flexShrink: 0, minWidth: 0 }}>
             <Link
               href="/"
               onClick={() => setActiveDropdown(null)}
+              className="p41-brand-logo-wrap"
               style={{
                 display: 'flex',
                 alignItems: 'center',
@@ -432,9 +442,9 @@ export function Navbar() {
             </nav>
           </div>
 
-          {/* ── 3. RIGHT ACTION AREA (LOGIN + CONSULT CTA) ─────────────── */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 14, flexShrink: 0 }}>
-            {/* Login button next to consult */}
+          {/* ── 3. RIGHT ACTION AREA (LOGIN + CONSULT CTA + HAMBURGER) ── */}
+          <div className="p41-actions-wrap" style={{ display: 'flex', alignItems: 'center', flexShrink: 0 }}>
+            {/* Login button (desktop only; mobile uses Admin Login inside drawer) */}
             <Link
               href="/admin/login"
               style={{
@@ -446,11 +456,10 @@ export function Navbar() {
                 padding: '8px 16px',
                 borderRadius: 8,
                 transition: 'color 0.15s, background-color 0.15s',
-                display: 'inline-flex',
                 alignItems: 'center',
                 whiteSpace: 'nowrap',
               }}
-              className="hover:text-blue-600 hover:bg-slate-100"
+              className="p41-login-desktop hover:text-blue-600 hover:bg-slate-100"
             >
               Login
             </Link>
@@ -458,12 +467,9 @@ export function Navbar() {
             {/* Primary CTA */}
             <Link
               href="/contact"
-              className="btn-primary"
+              className="btn-primary p41-consult-cta"
               style={{
-                fontSize: 13,
                 fontWeight: 600,
-                padding: '0 20px',
-                height: 40,
                 borderRadius: 8,
                 whiteSpace: 'nowrap',
                 textDecoration: 'none',
@@ -474,26 +480,33 @@ export function Navbar() {
                 transition: 'all 0.2s ease',
               }}
             >
-              Consult an Architect <ArrowRight size={14} />
+              <span className="p41-cta-full">Consult an Architect</span>
+              <span className="p41-cta-short">Consult</span>
+              <ArrowRight size={14} />
             </Link>
 
-            {/* Hamburger for mobile */}
+            {/* Hamburger for mobile & tablet */}
             <button
               type="button"
               onClick={() => setMobileMenuOpen((v) => !v)}
               className="p41-mobile-toggle"
               aria-label="Toggle navigation menu"
+              aria-expanded={mobileMenuOpen}
               style={{
-                background: 'none',
-                border: 'none',
+                width: 40,
+                height: 40,
+                borderRadius: 10,
+                border: '1px solid #E2E8F0',
+                background: mobileMenuOpen ? '#EFF6FF' : '#F8FAFC',
                 cursor: 'pointer',
-                padding: '8px',
-                color: C.navy,
+                color: mobileMenuOpen ? C.blue : C.navy,
                 alignItems: 'center',
                 justifyContent: 'center',
+                flexShrink: 0,
+                transition: 'background-color 0.15s, border-color 0.15s, color 0.15s',
               }}
             >
-              {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+              {mobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
             </button>
           </div>
         </div>
@@ -1307,17 +1320,21 @@ export function Navbar() {
       {/* ── 5. MOBILE NAVIGATION DRAWER ──────────────────────────────── */}
       {mobileMenuOpen && (
         <div
+          className="p41-mobile-backdrop"
           style={{
             position: 'fixed',
-            inset: 0,
-            top: 72,
-            background: 'rgba(15, 23, 42, 0.65)',
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: 'rgba(15, 23, 42, 0.55)',
             backdropFilter: 'blur(4px)',
+            WebkitBackdropFilter: 'blur(4px)',
             zIndex: 199,
           }}
           onClick={() => setMobileMenuOpen(false)}
         >
           <div
+            className="p41-mobile-drawer"
             onClick={(e) => e.stopPropagation()}
             style={{
               position: 'absolute',
@@ -1328,11 +1345,11 @@ export function Navbar() {
               maxWidth: 400,
               background: '#FFFFFF',
               overflowY: 'auto',
-              padding: '24px 24px 48px',
+              padding: '20px 20px 36px',
               display: 'flex',
               flexDirection: 'column',
-              gap: 16,
-              boxShadow: '-8px 0 32px rgba(15, 23, 42, 0.15)',
+              gap: 12,
+              boxShadow: '-8px 0 32px rgba(15, 23, 42, 0.16)',
             }}
           >
             {/* Direct Home Link */}
@@ -1769,6 +1786,30 @@ export function Navbar() {
 
       {/* Responsive & Animation Styles */}
       <style>{`
+        .p41-header-bar {
+          height: 72px;
+        }
+        .p41-header-inner {
+          padding: 0 32px;
+          gap: 24px;
+        }
+        .p41-actions-wrap {
+          gap: 14px;
+        }
+        .p41-login-desktop {
+          display: inline-flex;
+        }
+        .p41-consult-cta {
+          font-size: 13px;
+          padding: 0 20px;
+          height: 40px;
+        }
+        .p41-cta-full {
+          display: inline;
+        }
+        .p41-cta-short {
+          display: none;
+        }
         .p41-desktop-nav {
           display: flex !important;
           flex-direction: row !important;
@@ -1776,12 +1817,74 @@ export function Navbar() {
         .p41-mobile-toggle {
           display: none !important;
         }
+        .p41-mobile-backdrop {
+          top: 72px;
+        }
+        .p41-mobile-drawer {
+          animation: p41-drawer-slide 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+        }
         @media (max-width: 1024px) {
+          .p41-header-bar {
+            height: 68px;
+          }
+          .p41-header-inner {
+            padding: 0 20px;
+            gap: 12px;
+          }
+          .p41-actions-wrap {
+            gap: 10px;
+          }
           .p41-desktop-nav {
+            display: none !important;
+          }
+          .p41-login-desktop {
             display: none !important;
           }
           .p41-mobile-toggle {
             display: flex !important;
+          }
+          .p41-mobile-backdrop {
+            top: 68px;
+          }
+        }
+        @media (max-width: 639px) {
+          .p41-header-bar {
+            height: 64px;
+          }
+          .p41-header-inner {
+            padding: 0 16px;
+            gap: 8px;
+          }
+          .p41-actions-wrap {
+            gap: 8px;
+          }
+          .p41-brand-logo-wrap {
+            transform: scale(0.86);
+            transform-origin: left center;
+          }
+          .p41-consult-cta {
+            font-size: 12px;
+            padding: 0 12px;
+            height: 36px;
+          }
+          .p41-cta-full {
+            display: none;
+          }
+          .p41-cta-short {
+            display: inline;
+          }
+          .p41-mobile-backdrop {
+            top: 64px;
+          }
+        }
+        @keyframes p41-drawer-slide {
+          from {
+            opacity: 0;
+            transform: translateX(16px);
+          }
+          to {
+            opacity: 1;
+            transform: translateX(0);
           }
         }
         @keyframes safepay-nav-slide {
